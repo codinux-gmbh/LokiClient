@@ -22,3 +22,6 @@ plugins {
 
 
 rootProject.name = "LokiApi"
+
+
+include("loki-api-client")
