@@ -1,21 +1,22 @@
-plugins {
-    kotlin("jvm") version "2.1.21"
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    val kotlinVersion: String by extra
+
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
 }
 
-group = "net.codinux.log.loki"
-version = "1.0.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
-}
+allprojects {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
 
-dependencies {
-    testImplementation(kotlin("test"))
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-kotlin {
-    jvmToolchain(21)
+    group = "net.codinux.log.loki"
+    version = "1.0.0-SNAPSHOT"
 }
