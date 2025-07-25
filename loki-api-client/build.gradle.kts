@@ -75,12 +75,39 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
 
+    val kotlinxSerializationVersion: String by project
+    val coroutinesVersion: String by project
+
+    val kmpDateTimeVersion: String by project
+    val kmpBaseVersion: String by project
+    val jacksonVersion: String by project
+    val webClientVersion: String by project
+    val klfVersion: String by project
+
+    val assertKVersion: String by project
+    val logbackVersion: String by project
+
     sourceSets {
         commonMain.dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
 
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+
+            implementation("net.dankito.web:ktor-web-client:$webClientVersion")
+
+            implementation("com.willowtreeapps.assertk:assertk:$assertKVersion")
+        }
+
+        jvmMain.dependencies {
+            // needed for @JsonIgnore of kmp-base
+            compileOnly("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+        }
+        jvmTest.dependencies {
+            implementation("ch.qos.logback:logback-classic:$logbackVersion")
         }
     }
 }
