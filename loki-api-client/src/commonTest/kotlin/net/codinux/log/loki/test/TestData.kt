@@ -5,6 +5,9 @@ import net.dankito.web.client.auth.BasicAuthAuthentication
 
 object TestData {
 
+    const val LogsWithNamespaceLabelQuery = """namespace=~".+""""
+
+
     val webClient = KtorWebClient(
         baseUrl = "http://localhost:3100",
         authentication = null,

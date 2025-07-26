@@ -42,15 +42,29 @@ class LokiApiClientTest {
 
     @Test
     fun queryStreams() = runTest {
-        val result = underTest.queryStreams("""namespace=~".+"""")
+        val result = underTest.queryStreams(TestData.LogsWithNamespaceLabelQuery)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
 
-        val body = result.body
-        assertThat(body).isNotNull()
-        assertThat(body!!.status).isEqualTo("success")
+        val body = result.body!!
+        assertThat(body.status).isEqualTo("success")
         assertThat(body.streams!!.size).isGreaterThan(3)
+    }
+
+
+    @Test
+    fun queryLogStatistics() = runTest {
+        val result = underTest.queryLogStatistics(TestData.LogsWithNamespaceLabelQuery)
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val body = result.body!!
+        assertThat(body.streams).isGreaterThan(0)
+        assertThat(body.chunks).isGreaterThan(0)
+        assertThat(body.entries).isGreaterThan(0)
+        assertThat(body.bytes).isGreaterThan(0)
     }
 
 }
