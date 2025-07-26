@@ -2,6 +2,7 @@ package net.codinux.log.loki.api
 
 import net.codinux.log.loki.api.dto.LabelValuesResponse
 import net.codinux.log.loki.api.dto.LabelsResponse
+import net.codinux.log.loki.api.dto.StreamsResponse
 import net.dankito.datetime.Instant
 import net.dankito.web.client.RequestParameters
 import net.dankito.web.client.WebClient
@@ -49,8 +50,8 @@ open class LokiApiClient(
     ): WebClientResult<LabelsResponse> {
         val queryParams = buildMap {
             if (query != null) { put("query", assertQueryFormat(query)) }
-            if (start != null) { put("start", start.toEpochNanoseconds()) }
-            if (end != null) { put("end", end.toEpochNanoseconds()) }
+            if (start != null) { put("start", toEpochNanos(start)) }
+            if (end != null) { put("end", toEpochNanos(end)) }
             if (since != null) { put("since", since) }
         }
 
@@ -92,12 +93,52 @@ open class LokiApiClient(
     ): WebClientResult<LabelValuesResponse> {
         val queryParams = buildMap {
             if (query != null) { put("query", assertQueryFormat(query)) }
-            if (start != null) { put("start", start.toEpochNanoseconds()) }
-            if (end != null) { put("end", end.toEpochNanoseconds()) }
+            if (start != null) { put("start", toEpochNanos(start)) }
+            if (end != null) { put("end", toEpochNanos(end)) }
             if (since != null) { put("since", since) }
         }
 
         return webClient.get(RequestParameters("/loki/api/v1/label/$label/values", LabelValuesResponse::class, queryParameters = queryParams))
+    }
+
+
+    /**
+     * This endpoint returns the list of streams (unique set of labels) that match a certain given selector.
+     */
+    open suspend fun queryStreams(
+        /**
+         * Repeated log stream selector argument that selects the streams to return.
+         *
+         * In our implementation the curly braces can be omitted.
+         */
+        query: String,
+        /**
+         * The start time for the query as a nanosecond Unix epoch. Defaults to 6 hours ago.
+         *
+         * LokiApiClient automatically converts the Instant to the appropriate Unix epoch timestamp.
+         */
+        start: Instant? = null,
+        /**
+         * The end time for the query as a nanosecond Unix epoch. Defaults to now.
+         *
+         * LokiApiClient automatically converts the Instant to the appropriate Unix epoch timestamp.
+         */
+        end: Instant? = null,
+        /**
+         * A `duration` used to calculate [start] relative to [end].
+         * If [end] is in the future, [start] is calculated as this duration before now.
+         * Any value specified for [start] supersedes this parameter.
+         */
+        since: String? = null,
+    ): WebClientResult<StreamsResponse> {
+        val queryParams = buildMap {
+            put("match[]", assertQueryFormat(query))
+            if (start != null) { put("start", toEpochNanos(start)) }
+            if (end != null) { put("end", toEpochNanos(end)) }
+            if (since != null) { put("since", since) }
+        }
+
+        return webClient.get(RequestParameters("/loki/api/v1/series", StreamsResponse::class, queryParameters = queryParams))
     }
 
 
@@ -108,6 +149,9 @@ open class LokiApiClient(
             "{${query}}"
         }
 
+    protected open fun toEpochNanosOrNull(instant: Instant?) = instant?.let { toEpochNanos(it) }
+
+    protected open fun toEpochNanos(instant: Instant): String = instant.toEpochNanoseconds()
 
     fun Instant.toEpochNanoseconds(): String = "$epochSeconds${nanosecondsOfSecond.toString().padStart(9, '0')}"
 

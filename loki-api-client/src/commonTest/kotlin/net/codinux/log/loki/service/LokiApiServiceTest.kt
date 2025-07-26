@@ -20,4 +20,11 @@ class LokiApiServiceTest {
         assertThat(result).isNotEmpty()
     }
 
+    @Test
+    fun getAllStreams() = runTest(timeout = 100.minutes) {
+        val result = underTest.getAllStreams("""namespace=~".+"""")
+
+        assertThat(result).isNotEmpty()
+    }
+
 }

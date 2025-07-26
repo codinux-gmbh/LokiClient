@@ -1,9 +1,7 @@
 package net.codinux.log.loki.service
 
 import net.codinux.log.loki.api.LokiApiClient
-import net.codinux.log.loki.api.dto.LabelsResponse
 import net.dankito.datetime.Instant
-import net.dankito.web.client.WebClientResult
 
 open class LokiApiService(
     protected val client: LokiApiClient,
@@ -13,21 +11,37 @@ open class LokiApiService(
         private const val ThirtyDaysSeconds = 30 * 24 * 60 * 60
     }
 
+
     open suspend fun getAllLabels(): Set<String> {
-        val labels = mutableSetOf<String>()
-        var response: WebClientResult<LabelsResponse>
+        return getAll { end ->
+            client.queryLabels(end = end, since = LokiApiClient.SinceMaxValue).body?.labels
+        }
+    }
+
+    open suspend fun getAllStreams(query: String): Set<Map<String, String>> {
+        return getAll { end ->
+            client.queryStreams(query, end = end, since = LokiApiClient.SinceMaxValue).body?.streams?.takeUnless { it.isEmpty() }
+        }
+    }
+
+
+    protected open suspend fun <T> getAll(retrieve: suspend (end: Instant) -> List<T>?): Set<T> {
+        val results = mutableSetOf<T>()
+        var retrievedSuccess = true
         var end = Instant.now()
 
         do {
-            response = client.queryLabels(end = end, since = LokiApiClient.SinceMaxValue)
+            val callResponse = retrieve(end)
+
+            retrievedSuccess = callResponse != null
             end = Instant.ofEpochSeconds(end.epochSeconds.toDouble() - ThirtyDaysSeconds)
 
-            if (response.successful && response.body?.labels != null) {
-                labels.addAll(response.body!!.labels!!)
+            if (callResponse != null) {
+                results.addAll(callResponse)
             }
-        } while (response.successful && response.body?.labels != null)
+        } while (retrievedSuccess)
 
-        return labels
+        return results
     }
 
 }
