@@ -26,4 +26,17 @@ class LokiApiClientTest {
         assertThat(body.labels!!.size).isGreaterThan(3)
     }
 
+
+    @Test
+    fun queryLabelValues() = runTest {
+        val result = underTest.queryLabelValues("namespace")
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val body = result.body!!
+        assertThat(body.status).isEqualTo("success")
+        assertThat(body.labelValues!!.size).isGreaterThan(3)
+    }
+
 }
