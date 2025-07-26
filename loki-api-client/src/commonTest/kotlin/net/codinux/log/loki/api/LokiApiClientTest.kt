@@ -23,7 +23,7 @@ class LokiApiClientTest {
 
         val body = result.body!!
         assertThat(body.status).isEqualTo("success")
-        assertThat(body.labels.size).isGreaterThan(3)
+        assertThat(body.labels!!.size).isGreaterThan(3)
     }
 
 }

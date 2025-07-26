@@ -7,6 +7,11 @@ import kotlinx.serialization.Serializable
 data class LabelsResponse(
     val status: String,
 
+    /**
+     * If for a time span no labels are known, then [labels] is `null`.
+     *
+     * I guess this means that there is no log data for this time span.
+     */
     @SerialName("data")
-    val labels: List<String>
+    val labels: List<String>? = null
 )
