@@ -1,6 +1,7 @@
 package net.codinux.log.loki.api
 
 import net.codinux.log.loki.api.dto.LabelsResponse
+import net.dankito.datetime.Instant
 import net.dankito.web.client.RequestParameters
 import net.dankito.web.client.WebClient
 import net.dankito.web.client.WebClientResult
@@ -26,14 +27,28 @@ open class LokiApiClient(
          */
         query: String? = null,
         /**
-         * A `duration` used to calculate `start` relative to `end`.
-         * If `end` is in the future, `start` is calculated as this duration before now.
-         * Any value specified for `start` supersedes this parameter.
+         * The start time for the query as a nanosecond Unix epoch. Defaults to 6 hours ago.
+         *
+         * LokiApiClient automatically converts the Instant to the appropriate Unix epoch timestamp.
+         */
+        start: Instant? = null,
+        /**
+         * The end time for the query as a nanosecond Unix epoch. Defaults to now.
+         *
+         * LokiApiClient automatically converts the Instant to the appropriate Unix epoch timestamp.
+         */
+        end: Instant? = null,
+        /**
+         * A `duration` used to calculate [start] relative to [end].
+         * If [end] is in the future, [start] is calculated as this duration before now.
+         * Any value specified for [start] supersedes this parameter.
          */
         since: String? = null,
     ): WebClientResult<LabelsResponse> {
         val queryParams = buildMap {
             if (query != null) { put("query", assertQueryFormat(query)) }
+            if (start != null) { put("start", start.toEpochNanoseconds()) }
+            if (end != null) { put("end", end.toEpochNanoseconds()) }
             if (since != null) { put("since", since) }
         }
 
@@ -46,5 +61,8 @@ open class LokiApiClient(
         } else {
             "{${query}}"
         }
+
+
+    fun Instant.toEpochNanoseconds(): String = "$epochSeconds${nanosecondsOfSecond.toString().padStart(9, '0')}"
 
 }

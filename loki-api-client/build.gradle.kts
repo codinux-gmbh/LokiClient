@@ -91,6 +91,10 @@ kotlin {
         commonMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
 
+            implementation("net.dankito.datetime:kmp-datetime:$kmpDateTimeVersion")
+            implementation("net.codinux.kotlin:kmp-base:$kmpBaseVersion")
+
+            api("net.dankito.web:web-client-api:$webClientVersion")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
