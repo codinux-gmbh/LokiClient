@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.*
 import kotlinx.coroutines.test.runTest
 import net.codinux.log.loki.test.TestData
+import net.dankito.datetime.LocalDate
 import kotlin.test.Test
 
 class LokiApiClientTest {
@@ -64,6 +65,26 @@ class LokiApiClientTest {
         assertThat(body::bytes).isGreaterThan(0)
     }
 
+
+    @Test
+    fun queryLogValue() = runTest {
+        val result = underTest.queryLogValue(TestData.LogsWithJobLabelQuery, since = LokiApiClient.SinceMaxValue)
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val body = result.body!!
+        assertThat(body::status).isEqualTo("success")
+        assertThat(body.data::resultType).isEqualTo("vector")
+        assertThat(body.data::result).isNotEmpty()
+
+        val vectors = body.data.result
+        val today = LocalDate.today()
+        vectors.forEach { vector ->
+            assertThat(vector.value::value).isGreaterThan(0)
+            assertThat(vector.value.timestamp.toLocalDateTimeAtSystemTimeZone().date).isEqualTo(today)
+        }
+    }
 
     @Test
     fun queryLogValueRange() = runTest {
