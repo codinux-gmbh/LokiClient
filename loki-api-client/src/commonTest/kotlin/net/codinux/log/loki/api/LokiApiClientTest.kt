@@ -166,4 +166,28 @@ class LokiApiClientTest {
         assertThat(result::body).isEqualTo("ready\n")
     }
 
+    @Test
+    fun config() = runTest {
+        val result = underTest.config()
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isNotEmpty()
+    }
+
+    @Test
+    fun services() = runTest {
+        val result = underTest.services()
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isNotEmpty()
+    }
+
+    @Test
+    fun metrics() = runTest {
+        val result = underTest.metrics()
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isNotEmpty()
+    }
+
 }

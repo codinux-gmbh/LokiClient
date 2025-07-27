@@ -463,6 +463,15 @@ open class LokiApiClient(
     open suspend fun ready(): WebClientResult<String> =
         webClient.get("$internalEndpointsPrefix/ready")
 
+    open suspend fun config(): WebClientResult<String> =
+        webClient.get("$internalEndpointsPrefix/config")
+
+    open suspend fun services(): WebClientResult<String> =
+        webClient.get("$internalEndpointsPrefix/services")
+
+    open suspend fun metrics(): WebClientResult<String> =
+        webClient.get("$internalEndpointsPrefix/metrics")
+
 
     protected open fun assertQueryFormat(query: String): String =
         if (query.startsWith('{') && query.endsWith('}')) {
