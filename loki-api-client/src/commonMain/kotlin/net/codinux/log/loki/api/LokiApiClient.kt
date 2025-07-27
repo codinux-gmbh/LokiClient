@@ -5,6 +5,7 @@ import net.dankito.datetime.Instant
 import net.dankito.web.client.RequestParameters
 import net.dankito.web.client.WebClient
 import net.dankito.web.client.WebClientResult
+import net.dankito.web.client.get
 
 open class LokiApiClient(
     protected val webClient: WebClient
@@ -443,6 +444,10 @@ open class LokiApiClient(
 
         return webClient.get(RequestParameters("/loki/api/v1/patterns", PatternResponse::class, queryParameters = queryParams))
     }
+
+
+    open suspend fun getBuildInformation() =
+        webClient.get<BuildInformation>("/loki/api/v1/status/buildinfo")
 
 
     protected open fun assertQueryFormat(query: String): String =

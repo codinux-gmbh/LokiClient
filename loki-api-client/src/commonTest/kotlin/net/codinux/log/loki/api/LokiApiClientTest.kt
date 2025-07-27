@@ -141,4 +141,20 @@ class LokiApiClientTest {
         }
     }
 
+
+    @Test
+    fun getBuildInformation() = runTest {
+        val result = underTest.getBuildInformation()
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val buildInformation = result.body!!
+        assertThat(buildInformation::version).isNotEmpty()
+        assertThat(buildInformation::revision).isNotEmpty()
+        assertThat(buildInformation::branch).isNotEmpty()
+        assertThat(buildInformation::buildUser).isNotEmpty()
+        assertThat(buildInformation::buildDate.get().dateTime.date.year).isGreaterThanOrEqualTo(2025)
+    }
+
 }
