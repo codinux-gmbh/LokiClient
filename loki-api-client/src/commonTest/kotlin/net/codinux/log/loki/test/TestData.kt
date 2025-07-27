@@ -7,6 +7,7 @@ object TestData {
 
     const val LogsWithNamespaceLabelQuery = """namespace=~".+""""
 
+    const val LogsWithJobLabelQuery = """job=~".+""""
 
     val webClient = KtorWebClient(
         baseUrl = "http://localhost:3100",

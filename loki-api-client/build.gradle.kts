@@ -90,6 +90,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion") // for ValuePointSerializer
 
             implementation("net.dankito.datetime:kmp-datetime:$kmpDateTimeVersion")
             implementation("net.codinux.kotlin:kmp-base:$kmpBaseVersion")

@@ -1,10 +1,7 @@
 package net.codinux.log.loki.api
 
 import assertk.assertThat
-import assertk.assertions.isEqualTo
-import assertk.assertions.isGreaterThan
-import assertk.assertions.isNotNull
-import assertk.assertions.isTrue
+import assertk.assertions.*
 import kotlinx.coroutines.test.runTest
 import net.codinux.log.loki.test.TestData
 import kotlin.test.Test
@@ -22,7 +19,7 @@ class LokiApiClientTest {
         assertThat(result::body).isNotNull()
 
         val body = result.body!!
-        assertThat(body.status).isEqualTo("success")
+        assertThat(body::status).isEqualTo("success")
         assertThat(body.labels!!.size).isGreaterThan(3)
     }
 
@@ -35,7 +32,7 @@ class LokiApiClientTest {
         assertThat(result::body).isNotNull()
 
         val body = result.body!!
-        assertThat(body.status).isEqualTo("success")
+        assertThat(body::status).isEqualTo("success")
         assertThat(body.labelValues!!.size).isGreaterThan(3)
     }
 
@@ -48,7 +45,7 @@ class LokiApiClientTest {
         assertThat(result::body).isNotNull()
 
         val body = result.body!!
-        assertThat(body.status).isEqualTo("success")
+        assertThat(body::status).isEqualTo("success")
         assertThat(body.streams!!.size).isGreaterThan(3)
     }
 
@@ -61,10 +58,45 @@ class LokiApiClientTest {
         assertThat(result::body).isNotNull()
 
         val body = result.body!!
-        assertThat(body.streams).isGreaterThan(0)
-        assertThat(body.chunks).isGreaterThan(0)
-        assertThat(body.entries).isGreaterThan(0)
-        assertThat(body.bytes).isGreaterThan(0)
+        assertThat(body::streams).isGreaterThan(0)
+        assertThat(body::chunks).isGreaterThan(0)
+        assertThat(body::entries).isGreaterThan(0)
+        assertThat(body::bytes).isGreaterThan(0)
+    }
+
+
+    @Test
+    fun queryLogValueRange() = runTest {
+        val result = underTest.queryLogValueRange(TestData.LogsWithJobLabelQuery, since = LokiApiClient.SinceMaxValue, step = "1d")
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val body = result.body!!
+        assertThat(body::status).isEqualTo("success")
+        assertThat(body.data::resultType).isEqualTo("matrix")
+        assertThat(body.data::result).isNotEmpty()
+
+        val byJob = body.data.result.map { it.metric["job"] to it.values.sumOf { it.value } }
+            .sortedByDescending { it.second }
+        if (byJob.isNotEmpty()) {}
+    }
+
+    @Test
+    fun queryLogValueRangeOfJobByNamespace() = runTest {
+        val result = underTest.queryLogValueRange("""job="fluentd",namespace="monitoring"""", since = LokiApiClient.SinceMaxValue, step = "1d", targetLabels = listOf("app"))
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val body = result.body!!
+        assertThat(body::status).isEqualTo("success")
+        assertThat(body.data::resultType).isEqualTo("matrix")
+        assertThat(body.data::result).isNotEmpty()
+
+        val byApp = body.data.result.map { it.metric["app"] to it.values.sumOf { it.value } }
+            .sortedByDescending { it.second }
+        if (byApp.isNotEmpty()) {}
     }
 
 }
