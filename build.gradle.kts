@@ -19,4 +19,9 @@ allprojects {
 
     group = "net.codinux.log.loki"
     version = "1.0.0-SNAPSHOT"
+
+
+    ext["sourceCodeRepositoryBaseUrl"] = "github.com/codinux/LokiApi"
+
+    ext["projectDescription"] = "Implements the Loki (https://grafana.com/docs/loki) HTTP API for all Kotlin Multiplatform targets"
 }
