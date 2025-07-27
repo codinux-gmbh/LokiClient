@@ -9,7 +9,7 @@ import kotlin.test.Test
 
 class LokiApiClientTest {
 
-    private val underTest = LokiApiClient(TestData.webClient)
+    private val underTest = LokiApiClient(TestData.webClient, "/loki/internal")
 
 
     @Test
@@ -155,6 +155,15 @@ class LokiApiClientTest {
         assertThat(buildInformation::branch).isNotEmpty()
         assertThat(buildInformation::buildUser).isNotEmpty()
         assertThat(buildInformation::buildDate.get().dateTime.date.year).isGreaterThanOrEqualTo(2025)
+    }
+
+
+    @Test
+    fun ready() = runTest {
+        val result = underTest.ready()
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isEqualTo("ready\n")
     }
 
 }

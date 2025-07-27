@@ -8,7 +8,12 @@ import net.dankito.web.client.WebClientResult
 import net.dankito.web.client.get
 
 open class LokiApiClient(
-    protected val webClient: WebClient
+    protected val webClient: WebClient,
+    /**
+     * In case internal endpoints like /ready, /config, /services, /metrics, ...
+     * are configured to have a path prefix like `/loki/internal`, configure this prefix here.
+     */
+    protected val internalEndpointsPrefix: String = "",
 ) {
 
     companion object {
@@ -446,8 +451,17 @@ open class LokiApiClient(
     }
 
 
-    open suspend fun getBuildInformation() =
-        webClient.get<BuildInformation>("/loki/api/v1/status/buildinfo")
+    open suspend fun getBuildInformation(): WebClientResult<BuildInformation> =
+        webClient.get("/loki/api/v1/status/buildinfo")
+
+
+    /*          Internal endpoints          */
+
+    /**
+     * /ready returns HTTP 200 when the Loki instance is ready to accept traffic.
+     */
+    open suspend fun ready(): WebClientResult<String> =
+        webClient.get("$internalEndpointsPrefix/ready")
 
 
     protected open fun assertQueryFormat(query: String): String =
