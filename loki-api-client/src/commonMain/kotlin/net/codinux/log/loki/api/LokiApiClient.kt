@@ -387,6 +387,64 @@ open class LokiApiClient(
     }
 
 
+    /**
+     * The `/loki/api/v1/patterns` endpoint can be used to query loki for patterns detected in the logs.
+     * This helps understand the structure of the logs Loki has ingested.
+     *
+     * The query should be a valid LogQL stream selector, for example `{job="foo", env=~".+"}`.
+     * The result is aggregated by the `pattern` from all matching streams.
+     *
+     * For each pattern detected, the response includes the pattern itself and the number of samples for
+     * each pattern at each timestamp.
+     *
+     * To enable this feature you must configure:
+     * ```yaml
+     * pattern_ingester:
+     *   enabled: true
+     * ```
+     */
+    open suspend fun patternsDetection(
+        /**
+         * The LogQL matchers to check (that is, `{job="foo", env=~".+"}`).
+         *
+         * In our implementation the curly braces can be omitted.
+         */
+        query: String,
+
+        /**
+         * Start timestamp.
+         */
+        start: Instant? = null,
+        /**
+         * End timestamp.
+         */
+        end: Instant? = null,
+        /**
+         * Not documented, but seems to work: A `duration` used to calculate [start] relative to [end].
+         * If [end] is in the future, [start] is calculated as this duration before now.
+         * Any value specified for [start] supersedes this parameter.
+         */
+        since: String? = null,
+        /**
+         * Step between samples for occurrences of this pattern.
+         * A Prometheus duration string of the form `[0-9]+[smhdwy]` or float number of seconds.
+         */
+        step: String? = null,
+    ): WebClientResult<PatternResponse> {
+        // TODO: for larger queries use POST and url-encoded request body
+        val queryParams = buildMap {
+            put("query", assertQueryFormat(query))
+
+            if (start != null) { put("start", toEpochNanos(start)) }
+            if (end != null) { put("end", toEpochNanos(end)) }
+            if (since != null) { put("since", since) }
+            if (step != null) { put("step", step) }
+        }
+
+        return webClient.get(RequestParameters("/loki/api/v1/patterns", PatternResponse::class, queryParameters = queryParams))
+    }
+
+
     protected open fun assertQueryFormat(query: String): String =
         if (query.startsWith('{') && query.endsWith('}')) {
             query

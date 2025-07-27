@@ -120,4 +120,25 @@ class LokiApiClientTest {
         if (byApp.isNotEmpty()) {}
     }
 
+
+    @Test
+    fun patternsDetection() = runTest {
+        val result = underTest.patternsDetection(TestData.LogsWithJobLabelQuery, since = LokiApiClient.SinceMaxValue)
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val body = result.body!!
+        assertThat(body::status).isEqualTo("success")
+
+        val detectedPatterns = body.data
+        detectedPatterns.forEach { pattern ->
+            assertThat(pattern::pattern).isNotEmpty()
+            assertThat(pattern::samples).isNotEmpty()
+            pattern.samples.forEach { sample ->
+                assertThat(sample::value).isGreaterThan(0)
+            }
+        }
+    }
+
 }
