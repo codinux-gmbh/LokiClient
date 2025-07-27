@@ -179,7 +179,7 @@ open class LokiApiClient(
          * Any value specified for [start] supersedes this parameter.
          */
         since: String? = null,
-    ): WebClientResult<StatisticsResponse> {
+    ): WebClientResult<LogStatisticsResponse> {
         // TODO: for larger queries use POST and url-encoded request body
         val queryParams = buildMap {
             put("query", assertQueryFormat(query))
@@ -188,7 +188,7 @@ open class LokiApiClient(
             if (since != null) { put("since", since) }
         }
 
-        return webClient.get(RequestParameters("/loki/api/v1/index/stats", StatisticsResponse::class, queryParameters = queryParams))
+        return webClient.get(RequestParameters("/loki/api/v1/index/stats", LogStatisticsResponse::class, queryParameters = queryParams))
     }
 
 
