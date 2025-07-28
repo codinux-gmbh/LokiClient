@@ -67,8 +67,8 @@ class LokiApiClientTest {
 
 
     @Test
-    fun queryLogValue() = runTest {
-        val result = underTest.queryLogValue(TestData.LogsWithJobLabelQuery, since = LokiApiClient.SinceMaxValue)
+    fun queryLogVolume() = runTest {
+        val result = underTest.queryLogVolume(TestData.LogsWithJobLabelQuery, since = LokiApiClient.SinceMaxValue)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
@@ -87,8 +87,8 @@ class LokiApiClientTest {
     }
 
     @Test
-    fun queryLogValueRange() = runTest {
-        val result = underTest.queryLogValueRange(TestData.LogsWithJobLabelQuery, since = LokiApiClient.SinceMaxValue, step = "1d")
+    fun queryLogVolumeRange() = runTest {
+        val result = underTest.queryLogVolumeRange(TestData.LogsWithJobLabelQuery, since = LokiApiClient.SinceMaxValue, step = "1d")
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
@@ -104,8 +104,8 @@ class LokiApiClientTest {
     }
 
     @Test
-    fun queryLogValueRangeOfJobByNamespace() = runTest {
-        val result = underTest.queryLogValueRange("""job="fluentd",namespace="monitoring"""", since = LokiApiClient.SinceMaxValue, step = "1d", targetLabels = listOf("app"))
+    fun queryLogVolumeRangeOfJobByNamespace() = runTest {
+        val result = underTest.queryLogVolumeRange("""job="fluentd",namespace="monitoring"""", since = LokiApiClient.SinceMaxValue, step = "1d", targetLabels = listOf("app"))
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()

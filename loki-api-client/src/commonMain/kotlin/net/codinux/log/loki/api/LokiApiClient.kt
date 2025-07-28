@@ -234,7 +234,7 @@ open class LokiApiClient(
      * you could query your logs with `aggregateBy=labels` and a query with either an exact or regex match on `team`, or
      * by including `team` in the list of `targetLabels`.
      */
-    open suspend fun queryLogValue(
+    open suspend fun queryLogVolume(
         /**
          * The LogQL matchers to check (that is, `{job="foo", env!="dev"}`).
          *
@@ -327,7 +327,7 @@ open class LokiApiClient(
      * you could query your logs with `aggregateBy=labels` and a query with either an exact or regex match on `team`, or
      * by including `team` in the list of `targetLabels`.
      */
-    open suspend fun queryLogValueRange(
+    open suspend fun queryLogVolumeRange(
         /**
          * The LogQL matchers to check (that is, `{job="foo", env!="dev"}`).
          *
