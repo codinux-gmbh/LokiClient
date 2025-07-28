@@ -14,6 +14,7 @@ open class LokiApiClient(
      * are configured to have a path prefix like `/loki/internal`, configure this prefix here.
      */
     protected val internalEndpointsPrefix: String = "",
+    protected val mapper: LokiDtoMapper = LokiDtoMapper(),
 ) {
 
     companion object {
@@ -373,7 +374,7 @@ open class LokiApiClient(
          * This parameter is optional, the default is label-value pairs.
          */
         aggregateBy: AggregateBy? = null,
-    ): WebClientResult<MatrixResponse> {
+    ): WebClientResult<VectorOrMatrixResponse> {
         // TODO: for larger queries use POST and url-encoded request body
         val queryParams = buildMap {
             put("query", assertQueryFormat(query))
@@ -389,7 +390,14 @@ open class LokiApiClient(
             if (aggregateBy != null) { put("aggregateBy", aggregateBy.apiValue) }
         }
 
-        return webClient.get(RequestParameters("/loki/api/v1/index/volume_range", MatrixResponse::class, queryParameters = queryParams))
+        val response = webClient.get(RequestParameters("/loki/api/v1/index/volume_range", String::class, queryParameters = queryParams))
+        return if (response.successful && response.body != null) {
+            // i guess it's a bug in Loki that it sometimes returns a VectorResponse instead of a MatrixResponse
+            response.copyWithBody(mapper.mapVectorOrMatrixResponse(response.body!!))
+        } else {
+            @Suppress("UNCHECKED_CAST")
+            response as WebClientResult<VectorOrMatrixResponse>
+        }
     }
 
 

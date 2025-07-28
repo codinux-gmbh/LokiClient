@@ -2,6 +2,8 @@ package net.codinux.log.loki.service
 
 import assertk.assertThat
 import assertk.assertions.isNotEmpty
+import assertk.assertions.isNotNull
+import assertk.assertions.isTrue
 import kotlinx.coroutines.test.runTest
 import net.codinux.log.loki.api.LokiApiClient
 import net.codinux.log.loki.test.TestData
@@ -32,8 +34,25 @@ class LokiApiServiceTest {
     fun analyzeLabels() = runTest(timeout = 100.minutes) {
         val result = underTest.analyzeLabels()
 
-        assertThat(result.streams).isNotEmpty()
-        assertThat(result.labels).isNotEmpty()
+        assertThat(result::streams).isNotEmpty()
+        assertThat(result::labels).isNotEmpty()
+    }
+
+
+    @Test
+    fun getLogVolume() = runTest {
+        val result = underTest.getLogVolume(TestData.LogsWithNamespaceLabelQuery)
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isNotEmpty()
+    }
+
+    @Test
+    fun getLogVolumeGroupedByNamespaceAndApp() = runTest {
+        val result = underTest.getLogVolume(TestData.LogsWithNamespaceLabelQuery, listOf("namespace", "app"))
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isNotEmpty()
     }
 
 }

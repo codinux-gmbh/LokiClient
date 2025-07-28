@@ -1,9 +1,12 @@
 package net.codinux.log.loki.service
 
 import net.codinux.log.loki.api.LokiApiClient
+import net.codinux.log.loki.api.dto.AggregateBy
+import net.codinux.log.loki.model.GetLogVolumeResult
 import net.codinux.log.loki.model.LabelAnalyzationResult
 import net.codinux.log.loki.model.LabelAnalyzationResults
 import net.dankito.datetime.Instant
+import net.dankito.web.client.WebClientResult
 
 open class LokiApiService(
     protected val client: LokiApiClient,
@@ -52,6 +55,31 @@ open class LokiApiService(
         }.sortedByDescending { it.foundInStreams }
 
         return LabelAnalyzationResults(streams, labels)
+    }
+
+
+    open suspend fun getLogVolume(query: String, groupByLabels: List<String>? = null, aggregateBy: AggregateBy? = null): WebClientResult<List<GetLogVolumeResult>> {
+        val response = client.queryLogVolumeRange(query, targetLabels = groupByLabels, aggregateBy = aggregateBy,
+            since = LokiApiClient.SinceMaxValue, step = "1d")
+
+        return if (response.successful && response.body != null) {
+            val mapped = if (response.body!!.matrixData != null) {
+                val data = response.body!!.matrixData!!.result
+                data.map { datum ->
+                    GetLogVolumeResult(datum.metric, datum.values.sumOf { it.value }, datum.values)
+                }
+
+            } else {
+                val vectorData = response.body!!.vectorData!!.result
+                vectorData.map { datum ->
+                    GetLogVolumeResult(datum.metric, datum.value.value, listOf(datum.value))
+                }
+            }
+            response.copyWithBody(mapped.sortedByDescending { it.aggregatedValue })
+        } else {
+            @Suppress("UNCHECKED_CAST")
+            response as WebClientResult<List<GetLogVolumeResult>>
+        }
     }
 
 

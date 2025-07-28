@@ -95,10 +95,12 @@ class LokiApiClientTest {
 
         val body = result.body!!
         assertThat(body::status).isEqualTo("success")
-        assertThat(body.data::resultType).isEqualTo("matrix")
-        assertThat(body.data::result).isNotEmpty()
+        assertThat(body::matrixData).isNotNull()
+        val data = body.matrixData!!
+        assertThat(data::resultType).isEqualTo("matrix")
+        assertThat(data::result).isNotEmpty()
 
-        val byJob = body.data.result.map { it.metric["job"] to it.values.sumOf { it.value } }
+        val byJob = data.result.map { it.metric["job"] to it.values.sumOf { it.value } }
             .sortedByDescending { it.second }
         if (byJob.isNotEmpty()) {}
     }
@@ -112,10 +114,12 @@ class LokiApiClientTest {
 
         val body = result.body!!
         assertThat(body::status).isEqualTo("success")
-        assertThat(body.data::resultType).isEqualTo("matrix")
-        assertThat(body.data::result).isNotEmpty()
+        assertThat(body::matrixData).isNotNull()
+        val data = body.matrixData!!
+        assertThat(data::resultType).isEqualTo("matrix")
+        assertThat(data::result).isNotEmpty()
 
-        val byApp = body.data.result.map { it.metric["app"] to it.values.sumOf { it.value } }
+        val byApp = data.result.map { it.metric["app"] to it.values.sumOf { it.value } }
             .sortedByDescending { it.second }
         if (byApp.isNotEmpty()) {}
     }
