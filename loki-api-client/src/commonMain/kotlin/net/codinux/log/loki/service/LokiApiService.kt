@@ -27,7 +27,7 @@ open class LokiApiService(
 
     protected open suspend fun <T> getAll(retrieve: suspend (end: Instant) -> List<T>?): Set<T> {
         val results = mutableSetOf<T>()
-        var retrievedSuccess = true
+        var retrievedSuccess: Boolean
         var end = Instant.now()
 
         do {
