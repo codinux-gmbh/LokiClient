@@ -1,6 +1,8 @@
 package net.codinux.log.loki.service
 
 import net.codinux.log.loki.api.LokiApiClient
+import net.codinux.log.loki.model.LabelAnalyzationResult
+import net.codinux.log.loki.model.LabelAnalyzationResults
 import net.dankito.datetime.Instant
 
 open class LokiApiService(
@@ -22,6 +24,34 @@ open class LokiApiService(
         return getAll { end ->
             client.queryStreams(query, end = end, since = LokiApiClient.SinceMaxValue).body?.streams?.takeUnless { it.isEmpty() }
         }
+    }
+
+
+    /**
+     * Does the same as `logcli series --analyze-labels` does:
+     * Get a summary of labels including count of label value combinations, useful for debugging high cardinality series.
+     *
+     * It is possible to send an empty label matcher '{}' to return all streams.
+     */
+    open suspend fun analyzeLabels(query: String = ""): LabelAnalyzationResults {
+        val streams = getAllStreams(query)
+
+        val foundInStreams = mutableMapOf<String, Int>()
+        val uniqueValues = mutableMapOf<String, MutableSet<String>>()
+
+        streams.forEach { stream ->
+            stream.entries.forEach { (label, value) ->
+                uniqueValues.getOrPut(label) { mutableSetOf() }.add(value)
+                val count = foundInStreams.getOrPut(label) { 0 }
+                foundInStreams[label] = count + 1
+            }
+        }
+
+        val labels = foundInStreams.map { (label, count) ->
+            LabelAnalyzationResult(label, count, uniqueValues[label] ?: emptySet())
+        }.sortedByDescending { it.foundInStreams }
+
+        return LabelAnalyzationResults(streams, labels)
     }
 
 
