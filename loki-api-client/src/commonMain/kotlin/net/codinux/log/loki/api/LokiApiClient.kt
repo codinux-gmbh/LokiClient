@@ -527,6 +527,47 @@ open class LokiApiClient(
         }
     }
 
+    /**
+     * Remove a delete request for the authenticated tenant.
+     * The log entry deletion documentation has configuration details.
+     *
+     * Loki allows cancellation of delete requests until the requests are picked up for processing.
+     * It is controlled by the `delete_request_cancel_period` YAML configuration or the equivalent command line
+     * option when invoking Loki.
+     * To cancel a delete request that has been picked up for processing or is partially complete,
+     * pass the `force=true` query parameter to the API.
+     *
+     * Log entry deletion is supported only when TSDB or BoltDB Shipper is configured for the index store.
+     *
+     * Note:
+     * Some data from the request may still be deleted and the deleted request will be listed as ‘processed’.
+     */
+    open suspend fun requestCancellationOfDeleteRequest(
+        /**
+         * Identifies the delete request to cancel; IDs are found using [listLogDeletionRequests].
+         */
+        requestId: String,
+        /**
+         * When the force query parameter is true, partially completed delete requests will be canceled.
+         */
+        force: Boolean? = null,
+    ): WebClientResult<Boolean> {
+        val queryParams = buildMap {
+            put("request_id", requestId)
+
+            if (force != null) { put("force", force) }
+        }
+
+        val response = webClient.delete(RequestParameters("/loki/api/v1/delete", String::class, queryParameters = queryParams))
+
+        return if (response.successful && response.body != null) {
+            response.copyWithBody(response.statusCode == 204)
+        } else {
+            @Suppress("UNCHECKED_CAST")
+            response as WebClientResult<Boolean>
+        }
+    }
+
 
 
     open suspend fun getBuildInformation(): WebClientResult<BuildInformation> =

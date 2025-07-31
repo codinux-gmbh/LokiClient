@@ -175,6 +175,14 @@ class LokiApiClientTest {
         assertThat(result::body).isNotNull().isNotEmpty()
     }
 
+    @Test
+    fun requestCancellationOfDeleteRequest() = runTest {
+        val result = underTest.requestCancellationOfDeleteRequest("7ef08f71")
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isTrue()
+    }
+
 
     @Test
     fun getBuildInformation() = runTest {
