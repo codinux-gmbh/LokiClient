@@ -1,6 +1,7 @@
 package net.codinux.log.loki.api
 
 import net.codinux.log.loki.api.dto.*
+import net.codinux.log.loki.extensions.toEpochNanoseconds
 import net.dankito.datetime.Instant
 import net.dankito.web.client.RequestParameters
 import net.dankito.web.client.WebClient
@@ -574,8 +575,6 @@ open class LokiApiClient(
     protected open fun toEpochNanosOrNull(instant: Instant?) = instant?.let { toEpochNanos(it) }
 
     protected open fun toEpochNanos(instant: Instant): String = instant.toEpochNanoseconds()
-
-    fun Instant.toEpochNanoseconds(): String = "$epochSeconds${nanosecondsOfSecond.toString().padStart(9, '0')}"
 
     protected open fun toEpochSecondsOrRfc3339(instant: Instant): String = instant.toString()
 

@@ -9,3 +9,5 @@ fun Instant.minusSeconds(seconds: Long): Instant =
 
 fun Instant.minusThirtyDays() =
     this.minusSeconds(ThirtyDaysSeconds)
+
+fun Instant.toEpochNanoseconds(): String = "$epochSeconds${nanosecondsOfSecond.toString().padStart(9, '0')}"
