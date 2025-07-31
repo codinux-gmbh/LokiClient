@@ -505,6 +505,27 @@ open class LokiApiClient(
         return response.successful && response.statusCode == 204
     }
 
+    /**
+     * List the existing delete requests for the authenticated tenant.
+     * The log entry deletion documentation has configuration details.
+     *
+     * Log entry deletion is supported only when TSDB or BoltDB Shipper is configured for the index store.
+     *
+     * This endpoint returns both processed and unprocessed deletion requests.
+     * It does not list canceled requests, as those requests will have been removed from storage.
+     */
+    open suspend fun listLogDeletionRequests(): WebClientResult<List<LogDeletionRequest>> {
+        val response = webClient.get<String>("/loki/api/v1/delete")
+
+        return if (response.successful && response.body != null) {
+            // don't know why, but KtorWebClient fails to decode a List, so we need to do it manually
+            response.copyWithBody(mapper.mapLogDeletionRequestList(response.body!!))
+        } else {
+            @Suppress("UNCHECKED_CAST")
+            response as WebClientResult<List<LogDeletionRequest>>
+        }
+    }
+
 
 
     open suspend fun getBuildInformation(): WebClientResult<BuildInformation> =

@@ -1,6 +1,7 @@
 package net.codinux.log.loki.api
 
 import kotlinx.serialization.json.Json
+import net.codinux.log.loki.api.dto.LogDeletionRequest
 import net.codinux.log.loki.api.dto.VectorOrMatrixResponse
 import net.codinux.log.loki.api.dto.VectorOrMatrixResponseEnvelop
 
@@ -20,5 +21,8 @@ open class LokiDtoMapper(
                     "expected either 'vector' or 'matrix'. Full JSON:\n$responseJson")
         }
     }
+
+    fun mapLogDeletionRequestList(logDeletionRequestList: String): List<LogDeletionRequest> =
+        json.decodeFromString(logDeletionRequestList)
 
 }

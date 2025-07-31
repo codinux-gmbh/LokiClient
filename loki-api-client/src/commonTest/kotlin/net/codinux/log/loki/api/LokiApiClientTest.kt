@@ -167,6 +167,14 @@ class LokiApiClientTest {
         assertThat(result).isTrue()
     }
 
+    @Test
+    fun listLogDeletionRequests() = runTest {
+        val result = underTest.listLogDeletionRequests()
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isNotEmpty()
+    }
+
 
     @Test
     fun getBuildInformation() = runTest {
