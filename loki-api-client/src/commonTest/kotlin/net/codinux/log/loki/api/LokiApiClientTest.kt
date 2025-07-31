@@ -3,7 +3,7 @@ package net.codinux.log.loki.api
 import assertk.assertThat
 import assertk.assertions.*
 import kotlinx.coroutines.test.runTest
-import net.codinux.log.loki.service.LokiApiService
+import net.codinux.log.loki.extensions.minusThirtyDays
 import net.codinux.log.loki.test.TestData
 import net.dankito.datetime.Instant
 import net.dankito.datetime.LocalDate
@@ -150,8 +150,8 @@ class LokiApiClientTest {
 
     @Test
     fun requestLogDeletion() = runTest {
-        val end = Instant.ofEpochSeconds(Instant.now().epochSeconds.toDouble() - LokiApiService.ThirtyDaysSeconds)
-        val start = Instant.ofEpochSeconds(end.epochSeconds.toDouble() - LokiApiService.ThirtyDaysSeconds)
+        val end = Instant.now().minusThirtyDays()
+        val start = end.minusThirtyDays()
 
         val result = underTest.requestLogDeletion("""{app="mongodb"}""", start)
 
@@ -160,7 +160,7 @@ class LokiApiClientTest {
 
     @Test
     fun requestLogDeletion_QueryWithLogLine() = runTest {
-        val start = Instant.ofEpochSeconds(Instant.now().epochSeconds.toDouble() - LokiApiService.ThirtyDaysSeconds)
+        val start = Instant.now().minusThirtyDays()
 
         val result = underTest.requestLogDeletion("""{app="loki"} |= "compacting"""", start)
 

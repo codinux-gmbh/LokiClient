@@ -2,6 +2,7 @@ package net.codinux.log.loki.service
 
 import net.codinux.log.loki.api.LokiApiClient
 import net.codinux.log.loki.api.dto.AggregateBy
+import net.codinux.log.loki.extensions.minusThirtyDays
 import net.codinux.log.loki.model.GetLogVolumeResult
 import net.codinux.log.loki.model.LabelAnalyzationResult
 import net.codinux.log.loki.model.LabelAnalyzationResults
@@ -11,11 +12,6 @@ import net.dankito.web.client.WebClientResult
 open class LokiApiService(
     protected val client: LokiApiClient,
 ) {
-
-    companion object {
-        const val ThirtyDaysSeconds = 30 * 24 * 60 * 60
-    }
-
 
     open suspend fun getAllLabels(): Set<String> {
         return getAll { end ->
@@ -92,7 +88,7 @@ open class LokiApiService(
             val callResponse = retrieve(end)
 
             retrievedSuccess = callResponse != null
-            end = Instant.ofEpochSeconds(end.epochSeconds.toDouble() - ThirtyDaysSeconds)
+            end = end.minusThirtyDays()
 
             if (callResponse != null) {
                 results.addAll(callResponse)
