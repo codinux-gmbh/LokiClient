@@ -13,7 +13,7 @@ open class LokiApiService(
 ) {
 
     companion object {
-        private const val ThirtyDaysSeconds = 30 * 24 * 60 * 60
+        const val ThirtyDaysSeconds = 30 * 24 * 60 * 60
     }
 
 

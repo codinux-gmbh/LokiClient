@@ -3,7 +3,9 @@ package net.codinux.log.loki.api
 import assertk.assertThat
 import assertk.assertions.*
 import kotlinx.coroutines.test.runTest
+import net.codinux.log.loki.service.LokiApiService
 import net.codinux.log.loki.test.TestData
+import net.dankito.datetime.Instant
 import net.dankito.datetime.LocalDate
 import kotlin.test.Test
 
@@ -143,6 +145,26 @@ class LokiApiClientTest {
                 assertThat(sample::value).isGreaterThan(0)
             }
         }
+    }
+
+
+    @Test
+    fun requestLogDeletion() = runTest {
+        val end = Instant.ofEpochSeconds(Instant.now().epochSeconds.toDouble() - LokiApiService.ThirtyDaysSeconds)
+        val start = Instant.ofEpochSeconds(end.epochSeconds.toDouble() - LokiApiService.ThirtyDaysSeconds)
+
+        val result = underTest.requestLogDeletion("""{app="mongodb"}""", start)
+
+        assertThat(result).isTrue()
+    }
+
+    @Test
+    fun requestLogDeletion_QueryWithLogLine() = runTest {
+        val start = Instant.ofEpochSeconds(Instant.now().epochSeconds.toDouble() - LokiApiService.ThirtyDaysSeconds)
+
+        val result = underTest.requestLogDeletion("""{app="loki"} |= "compacting"""", start)
+
+        assertThat(result).isTrue()
     }
 
 

@@ -459,6 +459,54 @@ open class LokiApiClient(
     }
 
 
+    /**
+     * Create a new delete request for the authenticated tenant.
+     * The [log entry deletion](https://grafana.com/docs/loki/latest/operations/storage/logs-deletion/)
+     * documentation has configuration details.
+     *
+     * Log entry deletion is supported only when TSDB or BoltDB Shipper is configured for the index store.
+     *
+     * The query parameter can also include filter operations. For example `query={foo="bar"} |= "other"` will filter
+     * out lines that contain the string “other” for the streams matching the stream selector `{foo="bar"}`.
+     *
+     * A 204 response indicates success.
+     */
+    open suspend fun requestLogDeletion(
+        /**
+         * Query argument that identifies the streams from which to delete with optional line filters.
+         */
+        query: String,
+        /**
+         * A timestamp that identifies the start of the time window within which entries will be deleted.
+         */
+        start: Instant,
+        /**
+         * A timestamp that identifies the end of the time window within which entries will be deleted.
+         * If not specified, defaults to the current time.
+         */
+        end: Instant? = null,
+        /**
+         * The maximum time period the delete request can span.
+         * If the request is larger than this value, it is split into several requests of <= `max_interval`.
+         * Valid time units are `s`, `m`, and `h`.
+         */
+        maxInterval: String? = null,
+    ): Boolean {
+        val queryParams = buildMap {
+            put("query", assertQueryWithLogLineFormat(query))
+
+            if (start != null) { put("start", toEpochSecondsOrRfc3339(start)) }
+            if (end != null) { put("end", toEpochSecondsOrRfc3339(end)) }
+            if (maxInterval != null) { put("max_interval", maxInterval) }
+        }
+
+        val response = webClient.put(RequestParameters("/loki/api/v1/delete", String::class, queryParameters = queryParams))
+
+        return response.successful && response.statusCode == 204
+    }
+
+
+
     open suspend fun getBuildInformation(): WebClientResult<BuildInformation> =
         webClient.get("/loki/api/v1/status/buildinfo")
 
@@ -488,10 +536,26 @@ open class LokiApiClient(
             "{${query}}"
         }
 
+    /**
+     * Checks the format of a LogQL query including a log line, e.g. `{foo="bar"} |= "other".
+     */
+    protected open fun assertQueryWithLogLineFormat(query: String): String =
+        if (query.startsWith('{')) {
+            query
+        } else {
+            if (query.contains(" |= ")) { // TODO: make more robust, e.g. for cases when the white spaces around '|=' are missing
+                "{${query.substringBefore(" |= ")}} |= ${query.substringAfter(" |= ")}"
+            } else {
+                "{${query}}"
+            }
+        }
+
     protected open fun toEpochNanosOrNull(instant: Instant?) = instant?.let { toEpochNanos(it) }
 
     protected open fun toEpochNanos(instant: Instant): String = instant.toEpochNanoseconds()
 
     fun Instant.toEpochNanoseconds(): String = "$epochSeconds${nanosecondsOfSecond.toString().padStart(9, '0')}"
+
+    protected open fun toEpochSecondsOrRfc3339(instant: Instant): String = instant.toString()
 
 }
