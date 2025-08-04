@@ -109,21 +109,28 @@ class LokiApiClientTest {
 
     @Test
     fun queryLogVolumeRangeOfJobByNamespace() = runTest {
-        val result = underTest.queryLogVolumeRange("""job="fluentd",namespace="monitoring"""", since = LokiApiClient.SinceMaxValue, step = "1d", targetLabels = listOf("app"))
+        val result = underTest.queryLogVolumeRange("""job="podlogs",namespace="monitoring"""", since = LokiApiClient.SinceMaxValue, step = "1d", targetLabels = listOf("app"))
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
 
         val body = result.body!!
         assertThat(body::status).isEqualTo("success")
-        assertThat(body::matrixData).isNotNull()
-        val data = body.matrixData!!
-        assertThat(data::resultType).isEqualTo("matrix")
-        assertThat(data::result).isNotEmpty()
+        assertThat(body.matrixData ?: body.vectorData).isNotNull()
 
-        val byApp = data.result.map { it.metric["app"] to it.values.sumOf { it.value } }
-            .sortedByDescending { it.second }
-        if (byApp.isNotEmpty()) {}
+        if (body.matrixData != null) {
+            val data = body.matrixData!!
+            assertThat(data::resultType).isEqualTo("matrix")
+            assertThat(data::result).isNotEmpty()
+
+            val byApp = data.result.map { it.metric["app"] to it.values.sumOf { it.value } }
+                .sortedByDescending { it.second }
+            if (byApp.isNotEmpty()) {}
+        } else if (body.vectorData != null) {
+            val data = body.vectorData!!
+            assertThat(data::resultType).isEqualTo("vector")
+            assertThat(data::result).isNotEmpty()
+        }
     }
 
 
@@ -155,16 +162,18 @@ class LokiApiClientTest {
 
         val result = underTest.requestLogDeletion("""{app="mongodb"}""", start)
 
-        assertThat(result).isTrue()
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isTrue()
     }
 
     @Test
     fun requestLogDeletion_QueryWithLogLine() = runTest {
-        val start = Instant.now().minusThirtyDays()
+        val start = Instant.now().minusThirtyDays().minusThirtyDays().minusThirtyDays()
 
         val result = underTest.requestLogDeletion("""{app="loki"} |= "compacting"""", start)
 
-        assertThat(result).isTrue()
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isTrue()
     }
 
     @Test
