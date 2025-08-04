@@ -55,6 +55,21 @@ open class LokiApiService(
 
 
     open suspend fun getLogVolume(query: String, groupByLabels: List<String>? = null, aggregateBy: AggregateBy? = null): WebClientResult<List<GetLogVolumeResult>> {
+        val response = client.queryLogVolume(query, targetLabels = groupByLabels, aggregateBy = aggregateBy)
+
+        return if (response.successful && response.body != null) {
+            val vectorData = response.body!!.data.result
+            val mapped =vectorData.map { datum ->
+                GetLogVolumeResult(datum.metric, datum.value.value, listOf(datum.value))
+            }
+            response.copyWithBody(mapped.sortedByDescending { it.aggregatedValue })
+        } else {
+            @Suppress("UNCHECKED_CAST")
+            response as WebClientResult<List<GetLogVolumeResult>>
+        }
+    }
+
+    open suspend fun getLogVolumeRange(query: String, groupByLabels: List<String>? = null, aggregateBy: AggregateBy? = null): WebClientResult<List<GetLogVolumeResult>> {
         val response = client.queryLogVolumeRange(query, targetLabels = groupByLabels, aggregateBy = aggregateBy,
             since = LokiApiClient.SinceMaxValue, step = "1d")
 
