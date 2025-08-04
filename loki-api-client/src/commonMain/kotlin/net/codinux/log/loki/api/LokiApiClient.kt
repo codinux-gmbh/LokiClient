@@ -492,7 +492,7 @@ open class LokiApiClient(
          * Valid time units are `s`, `m`, and `h`.
          */
         maxInterval: String? = null,
-    ): Boolean {
+    ): WebClientResult<Boolean> {
         val queryParams = buildMap {
             put("query", assertQueryWithLogLineFormat(query))
 
@@ -503,7 +503,12 @@ open class LokiApiClient(
 
         val response = webClient.put(RequestParameters("/loki/api/v1/delete", String::class, queryParameters = queryParams))
 
-        return response.successful && response.statusCode == 204
+        return if (response.successful && response.body != null) {
+            response.copyWithBody(response.statusCode == 204)
+        } else {
+            @Suppress("UNCHECKED_CAST")
+            response as WebClientResult<Boolean>
+        }
     }
 
     /**
