@@ -475,7 +475,7 @@ open class LokiApiClient(
         /**
          * A timestamp that identifies the start of the time window within which entries will be deleted.
          */
-        start: Instant,
+        start: Instant? = null,
         /**
          * A timestamp that identifies the end of the time window within which entries will be deleted.
          * If not specified, defaults to the current time.
