@@ -392,13 +392,9 @@ open class LokiApiClient(
         }
 
         val response = webClient.get(RequestParameters("/loki/api/v1/index/volume_range", String::class, queryParameters = queryParams))
-        return if (response.successful && response.body != null) {
-            // i guess it's a bug in Loki that it sometimes returns a VectorResponse instead of a MatrixResponse
-            response.copyWithBody(mapper.mapVectorOrMatrixResponse(response.body!!))
-        } else {
-            @Suppress("UNCHECKED_CAST")
-            response as WebClientResult<VectorOrMatrixResponse>
-        }
+
+        // i guess it's a bug in Loki that it sometimes returns a VectorResponse instead of a MatrixResponse
+        return response.mapResponseBodyIfSuccessful { body -> mapper.mapVectorOrMatrixResponse(body) }
     }
 
 
@@ -503,12 +499,7 @@ open class LokiApiClient(
 
         val response = webClient.put(RequestParameters("/loki/api/v1/delete", String::class, queryParameters = queryParams))
 
-        return if (response.successful && response.body != null) {
-            response.copyWithBody(response.statusCode == 204)
-        } else {
-            @Suppress("UNCHECKED_CAST")
-            response as WebClientResult<Boolean>
-        }
+        return response.mapResponseBodyIfSuccessful { response.statusCode == 204 }
     }
 
     /**
@@ -523,12 +514,9 @@ open class LokiApiClient(
     open suspend fun listLogDeletionRequests(): WebClientResult<List<LogDeletionRequest>> {
         val response = webClient.get<String>("/loki/api/v1/delete")
 
-        return if (response.successful && response.body != null) {
-            // don't know why, but KtorWebClient fails to decode a List, so we need to do it manually
-            response.copyWithBody(mapper.mapLogDeletionRequestList(response.body!!))
-        } else {
-            @Suppress("UNCHECKED_CAST")
-            response as WebClientResult<List<LogDeletionRequest>>
+        // don't know why, but KtorWebClient fails to decode a List, so we need to do it manually
+        return response.mapResponseBodyIfSuccessful { body ->
+            mapper.mapLogDeletionRequestList(body)
         }
     }
 
@@ -565,12 +553,7 @@ open class LokiApiClient(
 
         val response = webClient.delete(RequestParameters("/loki/api/v1/delete", String::class, queryParameters = queryParams))
 
-        return if (response.successful && response.body != null) {
-            response.copyWithBody(response.statusCode == 204)
-        } else {
-            @Suppress("UNCHECKED_CAST")
-            response as WebClientResult<Boolean>
-        }
+        return response.mapResponseBodyIfSuccessful { response.statusCode == 204 }
     }
 
 

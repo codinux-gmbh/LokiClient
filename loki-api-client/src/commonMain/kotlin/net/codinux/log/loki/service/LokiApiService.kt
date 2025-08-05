@@ -57,15 +57,12 @@ open class LokiApiService(
     open suspend fun getLogVolume(query: String, groupByLabels: List<String>? = null, aggregateBy: AggregateBy? = null): WebClientResult<List<GetLogVolumeResult>> {
         val response = client.queryLogVolume(query, targetLabels = groupByLabels, aggregateBy = aggregateBy)
 
-        return if (response.successful && response.body != null) {
-            val vectorData = response.body!!.data.result
+        return response.mapResponseBodyIfSuccessful { body ->
+            val vectorData = body.data.result
             val mapped =vectorData.map { datum ->
                 GetLogVolumeResult(datum.metric, datum.value.value, listOf(datum.value))
             }
-            response.copyWithBody(mapped.sortedByDescending { it.aggregatedValue })
-        } else {
-            @Suppress("UNCHECKED_CAST")
-            response as WebClientResult<List<GetLogVolumeResult>>
+            mapped.sortedByDescending { it.aggregatedValue }
         }
     }
 
@@ -73,8 +70,8 @@ open class LokiApiService(
         val response = client.queryLogVolumeRange(query, targetLabels = groupByLabels, aggregateBy = aggregateBy,
             since = LokiApiClient.SinceMaxValue, step = "1d")
 
-        return if (response.successful && response.body != null) {
-            val mapped = if (response.body!!.matrixData != null) {
+        return response.mapResponseBodyIfSuccessful { body ->
+            val mapped = if (body.matrixData != null) {
                 val data = response.body!!.matrixData!!.result
                 data.map { datum ->
                     GetLogVolumeResult(datum.metric, datum.values.sumOf { it.value }, datum.values)
@@ -86,10 +83,7 @@ open class LokiApiService(
                     GetLogVolumeResult(datum.metric, datum.value.value, listOf(datum.value))
                 }
             }
-            response.copyWithBody(mapped.sortedByDescending { it.aggregatedValue })
-        } else {
-            @Suppress("UNCHECKED_CAST")
-            response as WebClientResult<List<GetLogVolumeResult>>
+            mapped.sortedByDescending { it.aggregatedValue }
         }
     }
 
