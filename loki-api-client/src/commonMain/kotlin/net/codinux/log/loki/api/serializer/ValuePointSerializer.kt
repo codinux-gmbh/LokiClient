@@ -36,7 +36,7 @@ object ValuePointSerializer : KSerializer<ValuePoint> {
 
         val jsonArray = JsonArray(
             listOf(
-                JsonPrimitive(value.timestamp.epochSeconds), // TODO: add nanoseconds part
+                JsonPrimitive(value.timestamp.toEpochSecondsAsDouble()),
                 JsonPrimitive(value.value.toString())
             )
         )
