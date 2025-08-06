@@ -53,12 +53,7 @@ open class LokiApiClient(
          */
         since: String? = null,
     ): WebClientResult<LabelsResponse> {
-        val queryParams = buildMap {
-            if (query != null) { put("query", assertQueryFormat(query)) }
-            if (start != null) { put("start", toEpochNanos(start)) }
-            if (end != null) { put("end", toEpochNanos(end)) }
-            if (since != null) { put("since", since) }
-        }
+        val queryParams = queryParams(query, start, end, since)
 
         return webClient.get(RequestParameters("/loki/api/v1/label", LabelsResponse::class, queryParameters = queryParams))
     }
@@ -96,12 +91,7 @@ open class LokiApiClient(
          */
         since: String? = null,
     ): WebClientResult<LabelValuesResponse> {
-        val queryParams = buildMap {
-            if (query != null) { put("query", assertQueryFormat(query)) }
-            if (start != null) { put("start", toEpochNanos(start)) }
-            if (end != null) { put("end", toEpochNanos(end)) }
-            if (since != null) { put("since", since) }
-        }
+        val queryParams = queryParams(query, start, end, since)
 
         return webClient.get(RequestParameters("/loki/api/v1/label/$label/values", LabelValuesResponse::class, queryParameters = queryParams))
     }
@@ -141,12 +131,7 @@ open class LokiApiClient(
         // Content-Type: application/x-www-form-urlencoded header. This is useful when specifying a large or dynamic
         // number of stream selectors that may breach server-side URL character limits.
 
-        val queryParams = buildMap {
-            put("match[]", assertQueryFormat(query))
-            if (start != null) { put("start", toEpochNanos(start)) }
-            if (end != null) { put("end", toEpochNanos(end)) }
-            if (since != null) { put("since", since) }
-        }
+        val queryParams = queryParams(null, start, end, since, mapOf("match[]" to assertQueryFormat(query)))
 
         return webClient.get(RequestParameters("/loki/api/v1/series", StreamsResponse::class, queryParameters = queryParams))
     }
@@ -188,12 +173,7 @@ open class LokiApiClient(
         since: String? = null,
     ): WebClientResult<LogStatisticsResponse> {
         // TODO: for larger queries use POST and url-encoded request body
-        val queryParams = buildMap {
-            put("query", assertQueryFormat(query))
-            if (start != null) { put("start", toEpochNanos(start)) }
-            if (end != null) { put("end", toEpochNanos(end)) }
-            if (since != null) { put("since", since) }
-        }
+        val queryParams = queryParams(query, start, end, since)
 
         return webClient.get(RequestParameters("/loki/api/v1/index/stats", LogStatisticsResponse::class, queryParameters = queryParams))
     }
@@ -275,18 +255,11 @@ open class LokiApiClient(
         aggregateBy: AggregateBy? = null,
     ): WebClientResult<VectorResponse> {
         // TODO: for larger queries use POST and url-encoded request body
-        val queryParams = buildMap {
-            put("query", assertQueryFormat(query))
-
-            if (start != null) { put("start", toEpochNanos(start)) }
-            if (end != null) { put("end", toEpochNanos(end)) }
-            if (since != null) { put("since", since) }
-
-            if (limit != null) { put("limit", limit) }
-
-            if (targetLabels != null) { put("targetLabels", targetLabels.joinToString(",")) }
-            if (aggregateBy != null) { put("aggregateBy", aggregateBy.apiValue) }
-        }
+        val queryParams = queryParams(query, start, end, since, mapOf(
+            "limit" to limit,
+            "targetLabels" to targetLabels?.joinToString(","),
+            "aggregateBy" to aggregateBy?.apiValue
+        ))
 
         return webClient.get(RequestParameters("/loki/api/v1/index/volume", VectorResponse::class, queryParameters = queryParams))
     }
@@ -376,19 +349,13 @@ open class LokiApiClient(
         aggregateBy: AggregateBy? = null,
     ): WebClientResult<VectorOrMatrixResponse> {
         // TODO: for larger queries use POST and url-encoded request body
-        val queryParams = buildMap {
-            put("query", assertQueryFormat(query))
+        val queryParams = queryParams(query, start, end, since, mapOf(
+            "limit" to limit,
+            "step" to step,
 
-            if (start != null) { put("start", toEpochNanos(start)) }
-            if (end != null) { put("end", toEpochNanos(end)) }
-            if (since != null) { put("since", since) }
-
-            if (limit != null) { put("limit", limit) }
-            if (step != null) { put("step", step) }
-
-            if (targetLabels != null) { put("targetLabels", targetLabels.joinToString(",")) }
-            if (aggregateBy != null) { put("aggregateBy", aggregateBy.apiValue) }
-        }
+            "targetLabels" to targetLabels?.joinToString(","),
+            "aggregateBy" to aggregateBy?.apiValue
+        ))
 
         val response = webClient.get(RequestParameters("/loki/api/v1/index/volume_range", String::class, queryParameters = queryParams))
 
@@ -442,14 +409,7 @@ open class LokiApiClient(
         step: String? = null,
     ): WebClientResult<PatternResponse> {
         // TODO: for larger queries use POST and url-encoded request body
-        val queryParams = buildMap {
-            put("query", assertQueryFormat(query))
-
-            if (start != null) { put("start", toEpochNanos(start)) }
-            if (end != null) { put("end", toEpochNanos(end)) }
-            if (since != null) { put("since", since) }
-            if (step != null) { put("step", step) }
-        }
+        val queryParams = queryParams(query, start, end, since, mapOf("step" to step))
 
         return webClient.get(RequestParameters("/loki/api/v1/patterns", PatternResponse::class, queryParameters = queryParams))
     }
@@ -488,13 +448,12 @@ open class LokiApiClient(
          */
         maxInterval: String? = null,
     ): WebClientResult<Boolean> {
-        val queryParams = buildMap {
-            put("query", assertQueryWithLogLineFormat(query))
-
-            if (start != null) { put("start", toEpochSecondsOrRfc3339(start)) }
-            if (end != null) { put("end", toEpochSecondsOrRfc3339(end)) }
-            if (maxInterval != null) { put("max_interval", maxInterval) }
-        }
+        val queryParams = queryParams(other = mapOf(
+            "query" to assertQueryWithLogLineFormat(query),
+            "start" to start?.let { toEpochSecondsOrRfc3339(start) },
+            "end" to end?.let { toEpochSecondsOrRfc3339(end) },
+            "max_interval" to maxInterval
+        ))
 
         val response = webClient.put(RequestParameters("/loki/api/v1/delete", String::class, queryParameters = queryParams))
 
@@ -544,11 +503,10 @@ open class LokiApiClient(
          */
         force: Boolean? = null,
     ): WebClientResult<Boolean> {
-        val queryParams = buildMap {
-            put("request_id", requestId)
-
-            if (force != null) { put("force", force) }
-        }
+        val queryParams = queryParams(other = mapOf(
+            "request_id" to requestId,
+            "force" to force
+        ))
 
         val response = webClient.delete(RequestParameters("/loki/api/v1/delete", String::class, queryParameters = queryParams))
 
@@ -578,6 +536,22 @@ open class LokiApiClient(
     open suspend fun metrics(): WebClientResult<String> =
         webClient.get("$internalEndpointsPrefix/metrics")
 
+
+    protected open fun queryParams(query: String? = null, start: Instant? = null, end: Instant? = null, since: String? = null,
+                                   other: Map<String, Any?> = emptyMap()): Map<String, Any> =
+        buildMap {
+            if (query != null) { put("query", assertQueryFormat(query)) }
+
+            if (start != null) { put("start", toEpochNanos(start)) }
+            if (end != null) { put("end", toEpochNanos(end)) }
+            if (since != null) { put("since", since) }
+
+            other.forEach { (key, value) ->
+                if (value != null) {
+                    put(key, value)
+                }
+            }
+        }
 
     protected open fun assertQueryFormat(query: String): String =
         if (query.startsWith('{') && query.endsWith('}')) {
