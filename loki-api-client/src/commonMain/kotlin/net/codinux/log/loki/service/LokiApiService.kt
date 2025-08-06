@@ -6,6 +6,7 @@ import net.codinux.log.loki.extensions.minusThirtyDays
 import net.codinux.log.loki.model.GetLogVolumeResult
 import net.codinux.log.loki.model.LabelAnalyzationResult
 import net.codinux.log.loki.model.LabelAnalyzationResults
+import net.codinux.log.loki.model.LokiTimestamp
 import net.dankito.datetime.Instant
 import net.dankito.web.client.WebClientResult
 
@@ -88,13 +89,13 @@ open class LokiApiService(
     }
 
 
-    protected open suspend fun <T> getAll(retrieve: suspend (end: Instant) -> List<T>?): Set<T> {
+    protected open suspend fun <T> getAll(retrieve: suspend (end: LokiTimestamp) -> List<T>?): Set<T> {
         val results = mutableSetOf<T>()
         var retrievedSuccess: Boolean
         var end = Instant.now()
 
         do {
-            val callResponse = retrieve(end)
+            val callResponse = retrieve(LokiTimestamp(end))
 
             retrievedSuccess = callResponse != null
             end = end.minusThirtyDays()

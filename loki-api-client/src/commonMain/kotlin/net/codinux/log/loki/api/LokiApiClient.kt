@@ -1,7 +1,7 @@
 package net.codinux.log.loki.api
 
 import net.codinux.log.loki.api.dto.*
-import net.dankito.datetime.Instant
+import net.codinux.log.loki.model.LokiTimestamp
 import net.dankito.web.client.RequestParameters
 import net.dankito.web.client.WebClient
 import net.dankito.web.client.WebClientResult
@@ -36,16 +36,12 @@ open class LokiApiClient(
         query: String? = null,
         /**
          * The start time for the query as a nanosecond Unix epoch. Defaults to 6 hours ago.
-         *
-         * LokiApiClient automatically converts the Instant to the appropriate Unix epoch timestamp.
          */
-        start: Instant? = null,
+        start: LokiTimestamp? = null,
         /**
          * The end time for the query as a nanosecond Unix epoch. Defaults to now.
-         *
-         * LokiApiClient automatically converts the Instant to the appropriate Unix epoch timestamp.
          */
-        end: Instant? = null,
+        end: LokiTimestamp? = null,
         /**
          * A `duration` used to calculate [start] relative to [end].
          * If [end] is in the future, [start] is calculated as this duration before now.
@@ -74,16 +70,12 @@ open class LokiApiClient(
         query: String? = null,
         /**
          * The start time for the query as a nanosecond Unix epoch. Defaults to 6 hours ago.
-         *
-         * LokiApiClient automatically converts the Instant to the appropriate Unix epoch timestamp.
          */
-        start: Instant? = null,
+        start: LokiTimestamp? = null,
         /**
          * The end time for the query as a nanosecond Unix epoch. Defaults to now.
-         *
-         * LokiApiClient automatically converts the Instant to the appropriate Unix epoch timestamp.
          */
-        end: Instant? = null,
+        end: LokiTimestamp? = null,
         /**
          * A `duration` used to calculate [start] relative to [end].
          * If [end] is in the future, [start] is calculated as this duration before now.
@@ -109,16 +101,12 @@ open class LokiApiClient(
         query: String,
         /**
          * The start time for the query as a nanosecond Unix epoch. Defaults to 6 hours ago.
-         *
-         * LokiApiClient automatically converts the Instant to the appropriate Unix epoch timestamp.
          */
-        start: Instant? = null,
+        start: LokiTimestamp? = null,
         /**
          * The end time for the query as a nanosecond Unix epoch. Defaults to now.
-         *
-         * LokiApiClient automatically converts the Instant to the appropriate Unix epoch timestamp.
          */
-        end: Instant? = null,
+        end: LokiTimestamp? = null,
         /**
          * A `duration` used to calculate [start] relative to [end].
          * If [end] is in the future, [start] is calculated as this duration before now.
@@ -160,11 +148,11 @@ open class LokiApiClient(
         /**
          * Start timestamp.
          */
-        start: Instant? = null,
+        start: LokiTimestamp? = null,
         /**
          * End timestamp.
          */
-        end: Instant? = null,
+        end: LokiTimestamp? = null,
         /**
          * Not documented, but seems to work: A `duration` used to calculate [start] relative to [end].
          * If [end] is in the future, [start] is calculated as this duration before now.
@@ -226,11 +214,11 @@ open class LokiApiClient(
         /**
          * Start timestamp.
          */
-        start: Instant? = null,
+        start: LokiTimestamp? = null,
         /**
          * End timestamp.
          */
-        end: Instant? = null,
+        end: LokiTimestamp? = null,
         /**
          * Not documented, but seems to work: A `duration` used to calculate [start] relative to [end].
          * If [end] is in the future, [start] is calculated as this duration before now.
@@ -312,11 +300,11 @@ open class LokiApiClient(
         /**
          * Start timestamp.
          */
-        start: Instant? = null,
+        start: LokiTimestamp? = null,
         /**
          * End timestamp.
          */
-        end: Instant? = null,
+        end: LokiTimestamp? = null,
         /**
          * Not documented, but seems to work: A `duration` used to calculate [start] relative to [end].
          * If [end] is in the future, [start] is calculated as this duration before now.
@@ -391,11 +379,11 @@ open class LokiApiClient(
         /**
          * Start timestamp.
          */
-        start: Instant? = null,
+        start: LokiTimestamp? = null,
         /**
          * End timestamp.
          */
-        end: Instant? = null,
+        end: LokiTimestamp? = null,
         /**
          * Not documented, but seems to work: A `duration` used to calculate [start] relative to [end].
          * If [end] is in the future, [start] is calculated as this duration before now.
@@ -435,12 +423,12 @@ open class LokiApiClient(
         /**
          * A timestamp that identifies the start of the time window within which entries will be deleted.
          */
-        start: Instant? = null,
+        start: LokiTimestamp? = null,
         /**
          * A timestamp that identifies the end of the time window within which entries will be deleted.
          * If not specified, defaults to the current time.
          */
-        end: Instant? = null,
+        end: LokiTimestamp? = null,
         /**
          * The maximum time period the delete request can span.
          * If the request is larger than this value, it is split into several requests of <= `max_interval`.
@@ -537,7 +525,7 @@ open class LokiApiClient(
         webClient.get("$internalEndpointsPrefix/metrics")
 
 
-    protected open fun queryParams(query: String? = null, start: Instant? = null, end: Instant? = null, since: String? = null,
+    protected open fun queryParams(query: String? = null, start: LokiTimestamp? = null, end: LokiTimestamp? = null, since: String? = null,
                                    other: Map<String, Any?> = emptyMap()): Map<String, Any> =
         buildMap {
             if (query != null) { put("query", assertQueryFormat(query)) }
@@ -574,10 +562,10 @@ open class LokiApiClient(
             }
         }
 
-    protected open fun toEpochNanosOrNull(instant: Instant?) = instant?.let { toEpochNanos(it) }
+    protected open fun toEpochNanosOrNull(instant: LokiTimestamp?) = instant?.let { toEpochNanos(it) }
 
-    protected open fun toEpochNanos(instant: Instant): String = instant.toEpochNanosecondsString()
+    protected open fun toEpochNanos(timestamp: LokiTimestamp) = timestamp.timestamp.toEpochNanosecondsString()
 
-    protected open fun toEpochSecondsOrRfc3339(instant: Instant): String = instant.toString()
+    protected open fun toEpochSecondsOrRfc3339(timestamp: LokiTimestamp): String = timestamp.timestamp.toString()
 
 }

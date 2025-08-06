@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.*
 import kotlinx.coroutines.test.runTest
 import net.codinux.log.loki.extensions.minusThirtyDays
+import net.codinux.log.loki.model.LokiTimestamp
 import net.codinux.log.loki.test.TestData
 import net.dankito.datetime.Instant
 import net.dankito.datetime.LocalDate
@@ -160,7 +161,7 @@ class LokiApiClientTest {
         val end = Instant.now().minusThirtyDays()
         val start = end.minusThirtyDays()
 
-        val result = underTest.requestLogDeletion("""{app="mongodb"}""", start)
+        val result = underTest.requestLogDeletion("""{app="mongodb"}""", LokiTimestamp(start), LokiTimestamp(end))
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull().isTrue()
@@ -170,7 +171,7 @@ class LokiApiClientTest {
     fun requestLogDeletion_QueryWithLogLine() = runTest {
         val start = Instant.now().minusThirtyDays().minusThirtyDays().minusThirtyDays()
 
-        val result = underTest.requestLogDeletion("""{app="loki"} |= "compacting"""", start)
+        val result = underTest.requestLogDeletion("""{app="loki"} |= "compacting"""", LokiTimestamp(start))
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull().isTrue()
