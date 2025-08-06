@@ -8,6 +8,7 @@ import net.codinux.log.loki.model.LokiTimestamp
 import net.codinux.log.loki.test.TestData
 import net.dankito.datetime.Instant
 import net.dankito.datetime.LocalDate
+import kotlin.test.Ignore
 import kotlin.test.Test
 
 class LokiApiClientTest {
@@ -157,16 +158,14 @@ class LokiApiClientTest {
 
 
     @Test
-    fun requestLogDeletion() = runTest {
-        val end = Instant.now().minusThirtyDays()
-        val start = end.minusThirtyDays()
-
-        val result = underTest.requestLogDeletion("""{app="mongodb"}""", LokiTimestamp(start), LokiTimestamp(end))
+    fun listLogDeletionRequests() = runTest {
+        val result = underTest.listLogDeletionRequests()
 
         assertThat(result::successful).isTrue()
-        assertThat(result::body).isNotNull().isTrue()
+        assertThat(result::body).isNotNull().isNotEmpty()
     }
 
+    @Ignore // destructive test, don't execute automatically
     @Test
     fun requestLogDeletion_QueryWithLogLine() = runTest {
         val start = Instant.now().minusThirtyDays().minusThirtyDays().minusThirtyDays()
@@ -177,14 +176,7 @@ class LokiApiClientTest {
         assertThat(result::body).isNotNull().isTrue()
     }
 
-    @Test
-    fun listLogDeletionRequests() = runTest {
-        val result = underTest.listLogDeletionRequests()
-
-        assertThat(result::successful).isTrue()
-        assertThat(result::body).isNotNull().isNotEmpty()
-    }
-
+    @Ignore // only works if a log delete request has been created before
     @Test
     fun requestCancellationOfDeleteRequest() = runTest {
         val result = underTest.requestCancellationOfDeleteRequest("7ef08f71")
