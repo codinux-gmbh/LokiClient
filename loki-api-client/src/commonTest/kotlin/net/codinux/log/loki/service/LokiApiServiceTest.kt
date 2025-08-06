@@ -6,13 +6,17 @@ import assertk.assertions.isNotNull
 import assertk.assertions.isTrue
 import kotlinx.coroutines.test.runTest
 import net.codinux.log.loki.api.LokiApiClient
+import net.codinux.log.loki.extensions.toLokiTimestamp
 import net.codinux.log.loki.test.TestData
+import net.dankito.datetime.Instant
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
 
 class LokiApiServiceTest {
 
-    private val underTest = LokiApiService(LokiApiClient(TestData.webClient))
+    private val client = LokiApiClient(TestData.webClient)
+
+    private val underTest = LokiApiService(client)
 
 
     @Test
@@ -53,6 +57,25 @@ class LokiApiServiceTest {
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull().isNotEmpty()
+    }
+
+
+    @Test
+    fun requestLogDeletion() = runTest {
+        val now = Instant.now()
+
+        // request a very small time window, so that if cancelling below fails it's very unlikely that really data gets deleted
+        val result = underTest.requestLogDeletion("""{app="loki"} |= "compacting"""", now.minusMilliseconds(1).toLokiTimestamp(), now.toLokiTimestamp())
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val createdLogDeletionRequest = result.body!!
+
+        val cancellationResult = client.requestCancellationOfDeleteRequest(createdLogDeletionRequest.requestId)
+
+        assertThat(cancellationResult::successful).isTrue()
+        assertThat(cancellationResult::body).isNotNull().isTrue()
     }
 
 }

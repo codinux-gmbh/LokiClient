@@ -2,6 +2,7 @@ package net.codinux.log.loki.service
 
 import net.codinux.log.loki.api.LokiApiClient
 import net.codinux.log.loki.api.dto.AggregateBy
+import net.codinux.log.loki.api.dto.LogDeletionRequest
 import net.codinux.log.loki.extensions.minusThirtyDays
 import net.codinux.log.loki.model.GetLogVolumeResult
 import net.codinux.log.loki.model.LabelAnalyzationResult
@@ -86,6 +87,29 @@ open class LokiApiService(
             }
             mapped.sortedByDescending { it.aggregatedValue }
         }
+    }
+
+    /**
+     * Creates a new log deletion request and in case of success fetches and returns the newly created [LogDeletionRequest].
+     */
+    open suspend fun requestLogDeletion(query: String, start: LokiTimestamp? = null, end: LokiTimestamp? = null, maxInterval: String? = null): WebClientResult<LogDeletionRequest?> {
+        val deletionResponse = client.requestLogDeletion(query, start, end, maxInterval)
+
+        val createLogDeletionRequest = if (deletionResponse.successfulAndBodySet) {
+            val deletionRequestsResponse = client.listLogDeletionRequests()
+            if (deletionRequestsResponse.successfulAndBodySet) {
+                val deletionRequests = deletionRequestsResponse.body!!
+                deletionRequests.filter { it.query == query }
+                    .sortedByDescending { it.createdAt }
+                    .firstOrNull()
+            } else {
+                null
+            }
+        } else {
+            null
+        }
+
+        return deletionResponse.mapResponseBodyIfSuccessful { createLogDeletionRequest }
     }
 
 
