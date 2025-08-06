@@ -568,6 +568,6 @@ open class LokiApiClient(
 
     protected open fun toEpochNanos(timestamp: LokiTimestamp) = timestamp.timestamp.toEpochNanosecondsString()
 
-    protected open fun toEpochSecondsOrRfc3339(timestamp: LokiTimestamp): String = timestamp.timestamp.toString()
+    protected open fun toEpochSecondsOrRfc3339(timestamp: LokiTimestamp): String = timestamp.timestamp.isoString
 
 }
