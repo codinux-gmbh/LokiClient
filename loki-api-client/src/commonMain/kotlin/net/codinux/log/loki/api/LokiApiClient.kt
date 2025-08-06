@@ -2,6 +2,8 @@ package net.codinux.log.loki.api
 
 import net.codinux.log.loki.api.dto.*
 import net.codinux.log.loki.model.LokiTimestamp
+import net.codinux.log.loki.model.PrometheusDuration
+import net.codinux.log.loki.model.PrometheusDurationUnit
 import net.dankito.web.client.RequestParameters
 import net.dankito.web.client.WebClient
 import net.dankito.web.client.WebClientResult
@@ -18,7 +20,7 @@ open class LokiApiClient(
 ) {
 
     companion object {
-        const val SinceMaxValue = "30d"
+        val SinceMaxValue = PrometheusDuration(30, PrometheusDurationUnit.Days)
     }
 
 
@@ -47,7 +49,7 @@ open class LokiApiClient(
          * If [end] is in the future, [start] is calculated as this duration before now.
          * Any value specified for [start] supersedes this parameter.
          */
-        since: String? = null,
+        since: PrometheusDuration? = null,
     ): WebClientResult<LabelsResponse> {
         val queryParams = queryParams(query, start, end, since)
 
@@ -81,7 +83,7 @@ open class LokiApiClient(
          * If [end] is in the future, [start] is calculated as this duration before now.
          * Any value specified for [start] supersedes this parameter.
          */
-        since: String? = null,
+        since: PrometheusDuration? = null,
     ): WebClientResult<LabelValuesResponse> {
         val queryParams = queryParams(query, start, end, since)
 
@@ -112,7 +114,7 @@ open class LokiApiClient(
          * If [end] is in the future, [start] is calculated as this duration before now.
          * Any value specified for [start] supersedes this parameter.
          */
-        since: String? = null,
+        since: PrometheusDuration? = null,
     ): WebClientResult<StreamsResponse> {
         // TODO: for larger queries use POST and url-encoded request body:
         // You can URL-encode these parameters directly in the request body by using the POST method and
@@ -158,7 +160,7 @@ open class LokiApiClient(
          * If [end] is in the future, [start] is calculated as this duration before now.
          * Any value specified for [start] supersedes this parameter.
          */
-        since: String? = null,
+        since: PrometheusDuration? = null,
     ): WebClientResult<LogStatisticsResponse> {
         // TODO: for larger queries use POST and url-encoded request body
         val queryParams = queryParams(query, start, end, since)
@@ -224,7 +226,7 @@ open class LokiApiClient(
          * If [end] is in the future, [start] is calculated as this duration before now.
          * Any value specified for [start] supersedes this parameter.
          */
-        since: String? = null,
+        since: PrometheusDuration? = null,
 
         /**
          * How many metric series to return. The parameter is optional, the default is `100`.
@@ -310,7 +312,7 @@ open class LokiApiClient(
          * If [end] is in the future, [start] is calculated as this duration before now.
          * Any value specified for [start] supersedes this parameter.
          */
-        since: String? = null,
+        since: PrometheusDuration? = null,
 
         /**
          * How many metric series to return. The parameter is optional, the default is `100`.
@@ -389,7 +391,7 @@ open class LokiApiClient(
          * If [end] is in the future, [start] is calculated as this duration before now.
          * Any value specified for [start] supersedes this parameter.
          */
-        since: String? = null,
+        since: PrometheusDuration? = null,
         /**
          * Step between samples for occurrences of this pattern.
          * A Prometheus duration string of the form `[0-9]+[smhdwy]` or float number of seconds.
@@ -525,14 +527,14 @@ open class LokiApiClient(
         webClient.get("$internalEndpointsPrefix/metrics")
 
 
-    protected open fun queryParams(query: String? = null, start: LokiTimestamp? = null, end: LokiTimestamp? = null, since: String? = null,
+    protected open fun queryParams(query: String? = null, start: LokiTimestamp? = null, end: LokiTimestamp? = null, since: PrometheusDuration? = null,
                                    other: Map<String, Any?> = emptyMap()): Map<String, Any> =
         buildMap {
             if (query != null) { put("query", assertQueryFormat(query)) }
 
             if (start != null) { put("start", toEpochNanos(start)) }
             if (end != null) { put("end", toEpochNanos(end)) }
-            if (since != null) { put("since", since) }
+            if (since != null) { put("since", since.prometheusDurationString) }
 
             other.forEach { (key, value) ->
                 if (value != null) {
