@@ -3,12 +3,15 @@ package net.codinux.log.loki.service
 import net.codinux.log.loki.api.LokiApiClient
 import net.codinux.log.loki.api.dto.AggregateBy
 import net.codinux.log.loki.api.dto.LogDeletionRequest
+import net.codinux.log.loki.api.dto.LogStream
+import net.codinux.log.loki.api.dto.LogStreamValue
 import net.codinux.log.loki.api.dto.SortOrder
 import net.codinux.log.loki.extensions.minusThirtyDays
 import net.codinux.log.loki.model.GetLogVolumeResult
 import net.codinux.log.loki.model.LabelAnalyzationResult
 import net.codinux.log.loki.model.LabelAnalyzationResults
 import net.codinux.log.loki.model.LogEntry
+import net.codinux.log.loki.model.LogEntryToSave
 import net.codinux.log.loki.model.LokiTimestamp
 import net.codinux.log.loki.model.MetricValue
 import net.codinux.log.loki.model.MetricsResult
@@ -68,6 +71,12 @@ open class LokiApiService(
                 body.matrix!!.map { matrix -> MetricsResult(matrix.metric,
                     matrix.values.map { MetricValue(it.timestamp, it.valueAsDouble) }) }
             }
+
+
+    open suspend fun ingestLogs(logEntries: List<LogEntryToSave>): WebClientResult<Boolean> =
+        client.ingestLogs(logEntries.map { LogStream(it.labels, listOf(
+            LogStreamValue(it.timestamp.timestamp.toEpochNanosecondsString(),  it.message, it.structuredMetadata)
+        )) })
 
 
     open suspend fun getAllLabels(): Set<String> {

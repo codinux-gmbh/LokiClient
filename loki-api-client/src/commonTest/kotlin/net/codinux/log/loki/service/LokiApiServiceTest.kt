@@ -1,13 +1,19 @@
 package net.codinux.log.loki.service
 
 import assertk.assertThat
+import assertk.assertions.hasSize
+import assertk.assertions.isEqualTo
+import assertk.assertions.isGreaterThanOrEqualTo
 import assertk.assertions.isNotEmpty
 import assertk.assertions.isNotNull
 import assertk.assertions.isTrue
+import assertk.assertions.startsWith
 import kotlinx.coroutines.test.runTest
 import net.codinux.log.loki.api.LokiApiClient
 import net.codinux.log.loki.extensions.toLokiTimestamp
+import net.codinux.log.loki.model.LogEntryToSave
 import net.codinux.log.loki.model.days
+import net.codinux.log.loki.model.seconds
 import net.codinux.log.loki.test.TestData
 import net.dankito.datetime.Instant
 import kotlin.test.Test
@@ -34,6 +40,36 @@ class LokiApiServiceTest {
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull().isNotEmpty()
+    }
+
+
+    @Test
+    fun ingestLogs() = runTest {
+        val timestamp = Instant.now()
+
+        val result = underTest.ingestLogs(listOf(
+            LogEntryToSave(timestamp.toLokiTimestamp(), "Test 1", mapOf("namespace" to "default", "app" to "test")),
+            LogEntryToSave(timestamp.toLokiTimestamp(), "Test 2", mapOf("namespace" to "default", "app" to "test"), mapOf("level" to "info")),
+        ))
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isTrue()
+
+
+        val queryResult = underTest.queryLogs("""{namespace="default",app="test"}""", since = 10.seconds)
+        assertThat(queryResult::successful).isTrue()
+        assertThat(queryResult::body).isNotNull().hasSize(2)
+
+        val savedLogEntries = queryResult.body!!
+        savedLogEntries.forEach { entry ->
+            assertThat(entry::entries).hasSize(1)
+            assertThat(entry.entries.first()::timestamp).isEqualTo(timestamp)
+            assertThat(entry.entries.first()::message).startsWith("Test ")
+
+            assertThat(entry::stream.get().size).isGreaterThanOrEqualTo(4)
+            assertThat(entry.stream["namespace"]).isEqualTo("default")
+            assertThat(entry.stream["app"]).isEqualTo("test")
+        }
     }
 
 
