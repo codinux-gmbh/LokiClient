@@ -16,6 +16,7 @@ import net.codinux.log.loki.model.days
 import net.codinux.log.loki.model.seconds
 import net.codinux.log.loki.test.TestData
 import net.dankito.datetime.Instant
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
 
@@ -43,6 +44,7 @@ class LokiApiServiceTest {
     }
 
 
+    @Ignore // don't execute automatically, would save a lot of test data in Loki and is therefore not non-destructive
     @Test
     fun ingestLogs() = runTest {
         val timestamp = Instant.now()
