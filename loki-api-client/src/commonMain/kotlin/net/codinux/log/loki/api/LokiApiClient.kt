@@ -8,6 +8,7 @@ import net.dankito.web.client.RequestParameters
 import net.dankito.web.client.WebClient
 import net.dankito.web.client.WebClientResult
 import net.dankito.web.client.get
+import net.dankito.web.client.post
 
 open class LokiApiClient(
     protected val webClient: WebClient,
@@ -126,6 +127,17 @@ open class LokiApiClient(
         return webClient.get(RequestParameters("/loki/api/v1/query_range", LokiResponse::class, queryParameters = queryParams))
             .mapResponseBodyIfSuccessful { body -> mapper.mapMatrixOrStreamsResponse(body) }
     }
+
+
+    /**
+     * Send log entries to Loki.
+     */
+    open suspend fun ingestLogs(logEntries: List<LogStream>): WebClientResult<Boolean> =
+        webClient.post<Unit>("/loki/api/v1/push", PushLogsRequestBody(logEntries))
+            // If block_ingestion_until is configured and push requests are blocked, the endpoint will return the
+            // status code configured in block_ingestion_status_code (260 by default) along with an error message.
+            // If the configured status code is 200, no error message will be returned.
+            .let { it.copyWithBody(it.statusCode in 200..259) }
 
 
     /**

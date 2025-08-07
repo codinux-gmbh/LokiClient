@@ -24,22 +24,11 @@ object ValuePointSerializer : KSerializer<ValuePoint> {
             ?: throw SerializationException("Expected JsonDecoder")
 
         val array = jsonDecoder.decodeJsonElement().jsonArray
-        val timestamp = deserializeLokiTimestamp(array[0].jsonPrimitive)
+        val timestamp = LokiTimestampDeserializer.deserializeLokiTimestamp(array[0].jsonPrimitive)
         val value = array[1].jsonPrimitive.content
 
         return ValuePoint(timestamp, value)
     }
-
-    /**
-     * In Loki a timestamp can have 3 different formats:
-     * - Seconds since epoch as Double
-     * - Nanoseconds since epoch as Long
-     * - A RFC3339 string
-     */
-    private fun deserializeLokiTimestamp(jsonPrimitive: JsonPrimitive): Instant =
-        jsonPrimitive.longOrNull?.let { Instant.ofEpochNanoseconds(it) }
-            ?: jsonPrimitive.doubleOrNull?.let { Instant.ofEpochSeconds(it) }
-            ?: Instant.parse(jsonPrimitive.content)
 
 
     override fun serialize(encoder: Encoder, value: ValuePoint) {
