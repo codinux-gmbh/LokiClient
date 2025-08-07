@@ -52,8 +52,7 @@ open class LokiApiClient(
          */
         direction: SortOrder? = null,
     ): WebClientResult<VectorOrStreams> {
-        // do not call assertQueryFormat(query) here as metric queries are not embedded in '{}'
-        val queryParams = queryParams(other = mapOf("query" to query, "limit" to limit, "time" to time, "direction" to direction?.apiValue))
+        val queryParams = queryParams(query, other = mapOf("limit" to limit, "time" to time, "direction" to direction?.apiValue))
 
         return webClient.get(RequestParameters("/loki/api/v1/query", LokiResponse::class, queryParameters = queryParams))
             .mapResponseBodyIfSuccessful { body -> mapper.mapVectorOrStreamsResponse(body) }
@@ -119,8 +118,10 @@ open class LokiApiClient(
          */
         direction: SortOrder? = null,
     ): WebClientResult<MatrixOrStreams> {
-        // do not call assertQueryFormat(query) here as metric queries are not embedded in '{}'
-        val queryParams = queryParams(null, start, end, since, other = mapOf("query" to query, "limit" to limit, "direction" to direction?.apiValue))
+        val queryParams = queryParams(query, start, end, since, other = mapOf(
+            "limit" to limit, "direction" to direction?.apiValue,
+            "step" to step?.prometheusDurationString, "interval" to interval?.prometheusDurationString,
+        ))
 
         return webClient.get(RequestParameters("/loki/api/v1/query_range", LokiResponse::class, queryParameters = queryParams))
             .mapResponseBodyIfSuccessful { body -> mapper.mapMatrixOrStreamsResponse(body) }
@@ -541,8 +542,7 @@ open class LokiApiClient(
          */
         maxInterval: String? = null,
     ): WebClientResult<Boolean> {
-        val queryParams = queryParams(other = mapOf(
-            "query" to assertQueryWithLogLineFormat(query),
+        val queryParams = queryParams(query, other = mapOf(
             "start" to start?.let { toEpochSecondsOrRfc3339(start) },
             "end" to end?.let { toEpochSecondsOrRfc3339(end) },
             "max_interval" to maxInterval
@@ -647,27 +647,13 @@ open class LokiApiClient(
         }
 
     protected open fun assertQueryFormat(query: String): String =
-        if (query.startsWith('{') && query.endsWith('}')) {
-            query
-        } else {
+        // query can also contain a metric query like `count_over_time()` or `rate()` or end with a log line filter
+        // like `|= "table"` so that a check if query starts and ends with '{' and '}' is not valid
+        if (query.contains('{') == false && query.contains('}') == false) {
             "{${query}}"
-        }
-
-    /**
-     * Checks the format of a LogQL query including a log line, e.g. `{foo="bar"} |= "other".
-     */
-    protected open fun assertQueryWithLogLineFormat(query: String): String =
-        if (query.startsWith('{')) {
-            query
         } else {
-            if (query.contains(" |= ")) { // TODO: make more robust, e.g. for cases when the white spaces around '|=' are missing
-                "{${query.substringBefore(" |= ")}} |= ${query.substringAfter(" |= ")}"
-            } else {
-                "{${query}}"
-            }
+            query
         }
-
-    protected open fun toEpochNanosOrNull(instant: LokiTimestamp?) = instant?.let { toEpochNanos(it) }
 
     protected open fun toEpochNanos(timestamp: LokiTimestamp) = timestamp.timestamp.toEpochNanosecondsString()
 
