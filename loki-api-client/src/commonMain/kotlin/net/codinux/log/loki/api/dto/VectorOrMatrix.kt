@@ -10,4 +10,9 @@ class VectorOrMatrix private constructor(
 
         fun matrix(matrix: List<PrometheusMatrix>) = VectorOrMatrix(ResultType.Matrix, null, matrix)
     }
+
+
+    override fun toString() =
+        if (vector != null) "Vector $vector"
+        else "Matrix $matrix"
 }

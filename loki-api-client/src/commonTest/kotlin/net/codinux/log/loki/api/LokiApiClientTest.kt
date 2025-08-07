@@ -3,8 +3,10 @@ package net.codinux.log.loki.api
 import assertk.assertThat
 import assertk.assertions.*
 import kotlinx.coroutines.test.runTest
+import net.codinux.log.loki.api.dto.ResultType
 import net.codinux.log.loki.extensions.minusThirtyDays
 import net.codinux.log.loki.model.LokiTimestamp
+import net.codinux.log.loki.model.days
 import net.codinux.log.loki.test.TestData
 import net.dankito.datetime.Instant
 import net.dankito.datetime.LocalDate
@@ -14,6 +16,44 @@ import kotlin.test.Test
 class LokiApiClientTest {
 
     private val underTest = LokiApiClient(TestData.webClient, "/loki/internal")
+
+
+    @Test
+    fun metricQuery_VectorResult() = runTest {
+        val result = underTest.metricQuery("""sum(rate({job="podlogs"}[10m])) by (level)""")
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val body = result.body!!
+        assertThat(body::type).isEqualTo(ResultType.Vector)
+        assertThat(body::vector).isNotNull().isNotEmpty()
+    }
+
+
+    @Test
+    fun queryRange_StreamsResult() = runTest {
+        val result = underTest.queryRange("""{namespace="kube-system"}""", since = 2.days)
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val body = result.body!!
+        assertThat(body::type).isEqualTo(ResultType.Streams)
+        assertThat(body::streams).isNotNull().isNotEmpty()
+    }
+
+    @Test
+    fun queryRange_MatrixResult() = runTest {
+        val result = underTest.queryRange("""sum(rate({job="podlogs"}[10m])) by (level)""")
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val body = result.body!!
+        assertThat(body::type).isEqualTo(ResultType.Matrix)
+        assertThat(body::matrix).isNotNull().isNotEmpty()
+    }
 
 
     @Test
@@ -98,6 +138,7 @@ class LokiApiClientTest {
         assertThat(result::body).isNotNull()
 
         val body = result.body!!
+        assertThat(body::type).isEqualTo(ResultType.Matrix)
         assertThat(body::matrix).isNotNull()
         val data = body.matrix!!
 

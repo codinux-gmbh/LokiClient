@@ -4,11 +4,15 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import net.codinux.log.loki.api.dto.LogDeletionRequest
+import net.codinux.log.loki.api.dto.LokiResponse
+import net.codinux.log.loki.api.dto.MatrixOrStreams
 import net.codinux.log.loki.api.dto.PrometheusMatrix
 import net.codinux.log.loki.api.dto.PrometheusVector
 import net.codinux.log.loki.api.dto.ResponseData
 import net.codinux.log.loki.api.dto.ResultType
+import net.codinux.log.loki.api.dto.Stream
 import net.codinux.log.loki.api.dto.VectorOrMatrix
+import net.codinux.log.loki.api.dto.VectorOrStreams
 
 open class LokiDtoMapper(
     protected val json: Json = Json {
@@ -23,6 +27,20 @@ open class LokiDtoMapper(
                 "expected either 'vector' or 'matrix'. Full JSON:\n$response")
     }
 
+    fun mapVectorOrStreamsResponse(response: LokiResponse): VectorOrStreams = when (response.data.resultType) {
+        ResultType.Vector -> VectorOrStreams.vector(deserializeVector(response.data.result))
+        ResultType.Streams -> VectorOrStreams.streams(deserializeStreams(response.data.result))
+        else -> throw IllegalArgumentException("Unexpected result type '${response.data.resultType}', " +
+                "expected either 'vector' or 'streams'. Full JSON:\n$response")
+    }
+
+    fun mapMatrixOrStreamsResponse(response: LokiResponse): MatrixOrStreams = when (response.data.resultType) {
+        ResultType.Matrix -> MatrixOrStreams.matrix(deserializeMatrix(response.data.result))
+        ResultType.Streams -> MatrixOrStreams.streams(deserializeStreams(response.data.result))
+        else -> throw IllegalArgumentException("Unexpected result type '${response.data.resultType}', " +
+                "expected either 'matrix' or 'streams'. Full JSON:\n$response")
+    }
+
     fun mapLogDeletionRequestList(logDeletionRequestList: String): List<LogDeletionRequest> =
         json.decodeFromString(logDeletionRequestList)
 
@@ -32,5 +50,8 @@ open class LokiDtoMapper(
 
     fun deserializeMatrix(matrixElement: JsonElement) =
         json.decodeFromJsonElement(ListSerializer(PrometheusMatrix.serializer()), matrixElement)
+
+    fun deserializeStreams(streamsElement: JsonElement) =
+        json.decodeFromJsonElement(ListSerializer(Stream.serializer()), streamsElement)
 
 }

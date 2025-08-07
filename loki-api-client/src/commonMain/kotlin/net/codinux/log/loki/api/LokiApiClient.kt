@@ -25,6 +25,109 @@ open class LokiApiClient(
 
 
     /**
+     * `/loki/api/v1/query` allows for doing queries against a single point in time.
+     * This type of query is often referred to as an instant query.
+     * Instant queries are only used for metric type LogQL queries and will return a 400
+     * (Bad Request) in case a log type query is provided.
+     *
+     * In other words: In most cases you want to use [queryRange]
+     */
+    open suspend fun metricQuery(
+        /**
+         * The [LogQL](https://grafana.com/docs/loki/latest/query/) query to perform.
+         * Requests that do not use valid LogQL syntax will return errors.
+         */
+        query: String,
+        /**
+         * The max number of entries to return. It defaults to `100`. Only applies to query
+         * types which produce a stream (log lines) response.
+         */
+        limit: Int? = null,
+        /**
+         * The evaluation time for the query as a nanosecond Unix epoch or another supported format. Defaults to now.
+         */
+        time: LokiTimestamp? = null,
+        /**
+         * Determines the sort order of logs. Defaults to `backward`.
+         */
+        direction: SortOrder? = null,
+    ): WebClientResult<VectorOrStreams> {
+        // do not call assertQueryFormat(query) here as metric queries are not embedded in '{}'
+        val queryParams = queryParams(other = mapOf("query" to query, "limit" to limit, "time" to time, "direction" to direction?.apiValue))
+
+        return webClient.get(RequestParameters("/loki/api/v1/query", LokiResponse::class, queryParameters = queryParams))
+            .mapResponseBodyIfSuccessful { body -> mapper.mapVectorOrStreamsResponse(body) }
+    }
+
+    /**
+     * `/loki/api/v1/query_range` is used to do a query over a range of time.
+     * This type of query is often referred to as a range query.
+     * Range queries are used for both log and metric type LogQL queries.
+     */
+    open suspend fun queryRange(
+        /**
+         * The [LogQL](https://grafana.com/docs/loki/latest/query/) query to perform.
+         */
+        query: String,
+        /**
+         * The max number of entries to return. It defaults to `100`. Only applies to query
+         * types which produce a stream (log lines) response.
+         */
+        limit: Int? = null,
+        /**
+         * The start time for the query as a nanosecond Unix epoch or another supported format.
+         * Defaults to one hour ago. Loki returns results with timestamp greater or equal to this value.
+         */
+        start: LokiTimestamp? = null,
+        /**
+         * The end time for the query as a nanosecond Unix epoch or another supported format.
+         * Defaults to now. Loki returns results with timestamp lower than this value.
+         */
+        end: LokiTimestamp? = null,
+        /**
+         * A `duration` used to calculate `start` relative to `end`. If `end` is in the future, `start` is
+         * calculated as this duration before now. Any value specified for `start` supersedes this parameter.
+         */
+        since: PrometheusDuration? = null,
+        /**
+         * Query resolution step width in `duration` format or float number of seconds.
+         * `duration` refers to Prometheus duration strings of the form `[0-9]+[smhdwy]`.
+         * For example, `5m` refers to a duration of 5 minutes.
+         * Defaults to a dynamic value based on `start` and `end`.
+         * Only applies to query types which produce a matrix response (e.g. metric queries like `count_over_time()`, `rate()`, ...).
+         *
+         * Use the `step` parameter when making metric queries to Loki, or queries which return a matrix response.
+         * It is evaluated in exactly the same way Prometheus evaluates `step`.
+         * First the query will be evaluated at `start` and then evaluated again at `start + step` and again at
+         * `start + step + step` until `end` is reached.
+         * The result will be a matrix of the query result evaluated at each step.
+         */
+        step: PrometheusDuration? = null,
+        /**
+         * Only return entries at (or greater than) the specified interval, can be a `duration` format or
+         * float number of seconds. Only applies to queries which produce a stream response (like log queries).
+         * Not to be confused with step, which is only applied for metric queries.
+         *
+         * Use the `interval` parameter when making log queries to Loki, or queries which return a stream response.
+         * It is evaluated by returning a log entry at `start`, then the next entry will be returned an entry with
+         * `timestamp >= start + interval`, and again at `start + interval + interval` and so on until `end` is reached.
+         * It does not fill missing entries.
+         */
+        interval: PrometheusDuration? = null,
+        /**
+         * Determines the sort order of logs. Defaults to `backward`.
+         */
+        direction: SortOrder? = null,
+    ): WebClientResult<MatrixOrStreams> {
+        // do not call assertQueryFormat(query) here as metric queries are not embedded in '{}'
+        val queryParams = queryParams(null, start, end, since, other = mapOf("query" to query, "limit" to limit, "direction" to direction?.apiValue))
+
+        return webClient.get(RequestParameters("/loki/api/v1/query_range", LokiResponse::class, queryParameters = queryParams))
+            .mapResponseBodyIfSuccessful { body -> mapper.mapMatrixOrStreamsResponse(body) }
+    }
+
+
+    /**
      * Retrieves the list of known labels within a given time span.
      * Loki may use a larger time span than the one specified.
      */
