@@ -20,7 +20,7 @@ class LokiApiClientTest {
 
     @Test
     fun metricQuery_VectorResult() = runTest {
-        val result = underTest.metricQuery("""sum(rate({job="podlogs"}[10m])) by (level)""")
+        val result = underTest.metricQuery(TestData.MetricsQuery)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
@@ -45,7 +45,7 @@ class LokiApiClientTest {
 
     @Test
     fun queryRange_MatrixResult() = runTest {
-        val result = underTest.queryRange("""sum(rate({job="podlogs"}[10m])) by (level)""")
+        val result = underTest.queryRange(TestData.MetricsQuery)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()

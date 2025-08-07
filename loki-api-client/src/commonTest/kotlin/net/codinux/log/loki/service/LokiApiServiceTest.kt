@@ -7,6 +7,7 @@ import assertk.assertions.isTrue
 import kotlinx.coroutines.test.runTest
 import net.codinux.log.loki.api.LokiApiClient
 import net.codinux.log.loki.extensions.toLokiTimestamp
+import net.codinux.log.loki.model.days
 import net.codinux.log.loki.test.TestData
 import net.dankito.datetime.Instant
 import kotlin.test.Test
@@ -17,6 +18,23 @@ class LokiApiServiceTest {
     private val client = LokiApiClient(TestData.webClient)
 
     private val underTest = LokiApiService(client)
+
+
+    @Test
+    fun queryLogs() = runTest {
+        val result = underTest.queryLogs("""job="podlogs"""", since = 1.days)
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isNotEmpty()
+    }
+
+    @Test
+    fun queryMetrics() = runTest {
+        val result = underTest.queryMetrics(TestData.MetricsQuery, since = 1.days)
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull().isNotEmpty()
+    }
 
 
     @Test

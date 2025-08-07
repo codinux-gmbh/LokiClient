@@ -9,6 +9,8 @@ object TestData {
 
     const val LogsWithJobLabelQuery = """job=~".+""""
 
+    const val MetricsQuery = """sum(rate({job="podlogs"}[10m])) by (level)"""
+
     val webClient = KtorWebClient(
         baseUrl = "http://localhost:3100",
         authentication = null,

@@ -69,11 +69,6 @@ open class LokiApiClient(
          */
         query: String,
         /**
-         * The max number of entries to return. It defaults to `100`. Only applies to query
-         * types which produce a stream (log lines) response.
-         */
-        limit: Int? = null,
-        /**
          * The start time for the query as a nanosecond Unix epoch or another supported format.
          * Defaults to one hour ago. Loki returns results with timestamp greater or equal to this value.
          */
@@ -88,6 +83,11 @@ open class LokiApiClient(
          * calculated as this duration before now. Any value specified for `start` supersedes this parameter.
          */
         since: PrometheusDuration? = null,
+        /**
+         * The max number of entries to return. It defaults to `100`. Only applies to query
+         * types which produce a stream (log lines) response.
+         */
+        limit: Int? = null,
         /**
          * Query resolution step width in `duration` format or float number of seconds.
          * `duration` refers to Prometheus duration strings of the form `[0-9]+[smhdwy]`.

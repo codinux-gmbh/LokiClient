@@ -3,17 +3,72 @@ package net.codinux.log.loki.service
 import net.codinux.log.loki.api.LokiApiClient
 import net.codinux.log.loki.api.dto.AggregateBy
 import net.codinux.log.loki.api.dto.LogDeletionRequest
+import net.codinux.log.loki.api.dto.SortOrder
 import net.codinux.log.loki.extensions.minusThirtyDays
 import net.codinux.log.loki.model.GetLogVolumeResult
 import net.codinux.log.loki.model.LabelAnalyzationResult
 import net.codinux.log.loki.model.LabelAnalyzationResults
+import net.codinux.log.loki.model.LogEntry
 import net.codinux.log.loki.model.LokiTimestamp
+import net.codinux.log.loki.model.MetricValue
+import net.codinux.log.loki.model.MetricsResult
+import net.codinux.log.loki.model.PrometheusDuration
+import net.codinux.log.loki.model.QueryLogResult
 import net.dankito.datetime.Instant
 import net.dankito.web.client.WebClientResult
 
 open class LokiApiService(
     protected val client: LokiApiClient,
 ) {
+
+    /**
+     * Loki's /query_range endpoint can be used in two different ways, to query logs and to query metrics,
+     * and both return a different response type.
+     *
+     * To make it easy for you and spare you the mapping, this method has only the parameters available for
+     * log queries and maps the response to log entries.
+     *
+     * Log queries look like `{namespace=~"monitoring|kube-system"}`, `{job="podlogs" |= "line filter"`, ...
+     *
+     * For metrics queries use [queryMetrics].
+     */
+    open suspend fun queryLogs(query: String,
+                               start: LokiTimestamp? = null, end: LokiTimestamp? = null, since: PrometheusDuration? = null,
+                               direction: SortOrder? = null, limit: Int? = null, interval: PrometheusDuration? = null): WebClientResult<List<QueryLogResult>> =
+        client.queryRange(query, start, end, since, limit, null, interval, direction)
+            .mapResponseBodyIfSuccessful { body ->
+                if (body.matrix != null) {
+                    throw IllegalArgumentException("""You specified a metric query like `count_over_time()`, `rate()`, .... " +
+                            "Use method queryMetrics() for that. This method is only for logs queries like `{job="podlogs"} |= "line filter"`."""")
+                }
+                body.streams!!.map { stream -> QueryLogResult(stream.stream,
+                    stream.values.map { LogEntry(it.timestamp, it.value) }) }
+            }
+
+    /**
+     * Loki's /query_range endpoint can be used in two different ways, to query logs and to query metrics,
+     * and both return a different response type.
+     *
+     * To make it easy for you and spare you the mapping, this method has only the parameters available for
+     * metric queries and maps the response to metrics values.
+     *
+     * Metrics queries look like `count_over_time({..})`, `rate({..})`, ...
+     *
+     * For log queries use [queryLogs].
+     */
+    open suspend fun queryMetrics(query: String,
+                               start: LokiTimestamp? = null, end: LokiTimestamp? = null, since: PrometheusDuration? = null,
+                               direction: SortOrder? = null, limit: Int? = null, step: PrometheusDuration? = null): WebClientResult<List<MetricsResult>> =
+        client.queryRange(query, start, end, since, limit, step, null, direction)
+            .mapResponseBodyIfSuccessful { body ->
+                if (body.streams != null) {
+                    throw IllegalArgumentException("""You specified a log query like `{job="podlogs"} |= "line filter"`. " +
+                            "Use method queryLogs() for that. This method is only for metrics queries like `count_over_time()`, `rate()`, ..."""")
+                }
+                body.matrix!!.map { matrix -> MetricsResult(matrix.metric,
+                    matrix.values.map { MetricValue(it.timestamp, it.valueAsDouble) }) }
+            }
+
 
     open suspend fun getAllLabels(): Set<String> {
         return getAll { end ->
