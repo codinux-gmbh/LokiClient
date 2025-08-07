@@ -44,8 +44,8 @@ open class LokiApiService(
                     throw IllegalArgumentException("""You specified a metric query like `count_over_time()`, `rate()`, .... " +
                             "Use method queryMetrics() for that. This method is only for logs queries like `{job="podlogs"} |= "line filter"`."""")
                 }
-                body.streams!!.map { stream -> QueryLogResult(stream.stream,
-                    stream.values.map { LogEntry(it.timestamp, it.value) }) }
+
+                body.streams!!.map { stream -> QueryLogResult(stream.stream, stream.values) }
             }
 
     /**
@@ -68,6 +68,7 @@ open class LokiApiService(
                     throw IllegalArgumentException("""You specified a log query like `{job="podlogs"} |= "line filter"`. " +
                             "Use method queryLogs() for that. This method is only for metrics queries like `count_over_time()`, `rate()`, ..."""")
                 }
+
                 body.matrix!!.map { matrix -> MetricsResult(matrix.metric,
                     matrix.values.map { MetricValue(it.timestamp, it.valueAsDouble) }) }
             }
