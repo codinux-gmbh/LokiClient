@@ -27,7 +27,7 @@ object ValuePointSerializer : KSerializer<ValuePoint> {
         val timestamp = array[0].jsonPrimitive.double
         val value = array[1].jsonPrimitive.content
 
-        return ValuePoint(Instant.ofEpochSeconds(timestamp), value.toLong())
+        return ValuePoint(Instant.ofEpochSeconds(timestamp), value)
     }
 
     override fun serialize(encoder: Encoder, value: ValuePoint) {
@@ -37,7 +37,7 @@ object ValuePointSerializer : KSerializer<ValuePoint> {
         val jsonArray = JsonArray(
             listOf(
                 JsonPrimitive(value.timestamp.toEpochSecondsAsDouble()),
-                JsonPrimitive(value.value.toString())
+                JsonPrimitive(value.value)
             )
         )
 

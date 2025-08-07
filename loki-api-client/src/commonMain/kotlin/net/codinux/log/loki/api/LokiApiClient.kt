@@ -337,7 +337,7 @@ open class LokiApiClient(
          * This parameter is optional, the default is label-value pairs.
          */
         aggregateBy: AggregateBy? = null,
-    ): WebClientResult<VectorOrMatrixResponse> {
+    ): WebClientResult<VectorOrMatrix> {
         // TODO: for larger queries use POST and url-encoded request body
         val queryParams = queryParams(query, start, end, since, mapOf(
             "limit" to limit,
@@ -347,10 +347,10 @@ open class LokiApiClient(
             "aggregateBy" to aggregateBy?.apiValue
         ))
 
-        val response = webClient.get(RequestParameters("/loki/api/v1/index/volume_range", String::class, queryParameters = queryParams))
+        val response = webClient.get(RequestParameters("/loki/api/v1/index/volume_range", LokiResponse::class, queryParameters = queryParams))
 
         // i guess it's a bug in Loki that it sometimes returns a VectorResponse instead of a MatrixResponse
-        return response.mapResponseBodyIfSuccessful { body -> mapper.mapVectorOrMatrixResponse(body) }
+        return response.mapResponseBodyIfSuccessful { body -> mapper.mapVectorOrMatrixResponse(body.data) }
     }
 
 

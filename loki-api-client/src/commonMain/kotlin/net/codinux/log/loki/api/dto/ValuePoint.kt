@@ -7,5 +7,9 @@ import net.dankito.datetime.Instant
 @Serializable(with = ValuePointSerializer::class)
 data class ValuePoint(
     val timestamp: Instant,
-    val value: Long, // actually a String, but we convert it to Long, at least for Log Volume its fitting
-)
+    val value: String,
+) {
+    val valueAsLong: Long by lazy { value.toLong() }
+
+    val valueAsDouble: Double by lazy { value.toDouble() }
+}

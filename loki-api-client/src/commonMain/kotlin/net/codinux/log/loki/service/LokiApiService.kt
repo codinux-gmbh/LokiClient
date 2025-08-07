@@ -62,7 +62,7 @@ open class LokiApiService(
         return response.mapResponseBodyIfSuccessful { body ->
             val vectorData = body.data.result
             val mapped =vectorData.map { datum ->
-                GetLogVolumeResult(datum.metric, datum.value.value, listOf(datum.value))
+                GetLogVolumeResult(datum.metric, datum.value.valueAsLong, listOf(datum.value))
             }
             mapped.sortedByDescending { it.aggregatedValue }
         }
@@ -73,16 +73,13 @@ open class LokiApiService(
             since = LokiApiClient.SinceMaxValue, step = "1d")
 
         return response.mapResponseBodyIfSuccessful { body ->
-            val mapped = if (body.matrixData != null) {
-                val data = response.body!!.matrixData!!.result
-                data.map { datum ->
-                    GetLogVolumeResult(datum.metric, datum.values.sumOf { it.value }, datum.values)
+            val mapped = if (body.matrix != null) {
+                response.body!!.matrix!!.map { datum ->
+                    GetLogVolumeResult(datum.metric, datum.values.sumOf { it.valueAsLong }, datum.values)
                 }
-
             } else {
-                val vectorData = response.body!!.vectorData!!.result
-                vectorData.map { datum ->
-                    GetLogVolumeResult(datum.metric, datum.value.value, listOf(datum.value))
+                response.body!!.vector!!.map { datum ->
+                    GetLogVolumeResult(datum.metric, datum.value.valueAsLong, listOf(datum.value))
                 }
             }
             mapped.sortedByDescending { it.aggregatedValue }

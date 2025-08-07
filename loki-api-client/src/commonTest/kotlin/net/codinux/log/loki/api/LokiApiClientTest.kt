@@ -85,7 +85,7 @@ class LokiApiClientTest {
         val vectors = body.data.result
         val today = LocalDate.today()
         vectors.forEach { vector ->
-            assertThat(vector.value::value).isGreaterThan(0)
+            assertThat(vector.value::valueAsLong).isGreaterThan(0)
             assertThat(vector.value.timestamp.toLocalDateTimeAtSystemTimeZone().date).isEqualTo(today)
         }
     }
@@ -98,13 +98,10 @@ class LokiApiClientTest {
         assertThat(result::body).isNotNull()
 
         val body = result.body!!
-        assertThat(body::status).isEqualTo("success")
-        assertThat(body::matrixData).isNotNull()
-        val data = body.matrixData!!
-        assertThat(data::resultType).isEqualTo("matrix")
-        assertThat(data::result).isNotEmpty()
+        assertThat(body::matrix).isNotNull()
+        val data = body.matrix!!
 
-        val byJob = data.result.map { it.metric["job"] to it.values.sumOf { it.value } }
+        val byJob = data.map { it.metric["job"] to it.values.sumOf { it.valueAsLong } }
             .sortedByDescending { it.second }
         if (byJob.isNotEmpty()) {}
     }
@@ -117,21 +114,18 @@ class LokiApiClientTest {
         assertThat(result::body).isNotNull()
 
         val body = result.body!!
-        assertThat(body::status).isEqualTo("success")
-        assertThat(body.matrixData ?: body.vectorData).isNotNull()
+        assertThat(body.matrix ?: body.vector).isNotNull()
 
-        if (body.matrixData != null) {
-            val data = body.matrixData!!
-            assertThat(data::resultType).isEqualTo("matrix")
-            assertThat(data::result).isNotEmpty()
+        if (body.matrix != null) {
+            val data = body.matrix!!
+            assertThat(data).isNotEmpty()
 
-            val byApp = data.result.map { it.metric["app"] to it.values.sumOf { it.value } }
+            val byApp = data.map { it.metric["app"] to it.values.sumOf { it.valueAsLong } }
                 .sortedByDescending { it.second }
             if (byApp.isNotEmpty()) {}
-        } else if (body.vectorData != null) {
-            val data = body.vectorData!!
-            assertThat(data::resultType).isEqualTo("vector")
-            assertThat(data::result).isNotEmpty()
+        } else if (body.vector != null) {
+            val data = body.vector
+            assertThat(data).isNotNull().isNotEmpty()
         }
     }
 
@@ -151,7 +145,7 @@ class LokiApiClientTest {
             assertThat(pattern::pattern).isNotEmpty()
             assertThat(pattern::samples).isNotEmpty()
             pattern.samples.forEach { sample ->
-                assertThat(sample::value).isGreaterThan(0)
+                assertThat(sample::valueAsLong).isGreaterThan(0)
             }
         }
     }
