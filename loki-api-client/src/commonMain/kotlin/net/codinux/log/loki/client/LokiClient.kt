@@ -23,7 +23,7 @@ open class LokiClient(
     }
 
 
-    protected val apiEndpoint = removeSlashAtEnd(config.baseUrl)
+    protected val apiEndpoint = removeSlashAtEnd(config.baseUrl) + "/loki/api/v1"
 
     protected val internalEndpoint = removeSlashAtEnd(config.baseUrl) + removeSlashAtEnd(config.internalEndpointsPathPrefix ?: "")
 
@@ -95,7 +95,7 @@ open class LokiClient(
             "step" to step?.prometheusDurationString, "interval" to interval?.prometheusDurationString,
         ))
 
-        return webClient.get(RequestParameters("$apiEndpoint/loki/api/v1/query_range", LokiResponse::class, queryParameters = queryParams, authentication = authentication))
+        return webClient.get(RequestParameters("$apiEndpoint/query_range", LokiResponse::class, queryParameters = queryParams, authentication = authentication))
             .mapResponseBodyIfSuccessful { body -> mapper.mapMatrixOrStreamsResponse(body) }
     }
 
@@ -129,7 +129,7 @@ open class LokiClient(
     ): WebClientResult<VectorOrStreams> {
         val queryParams = queryParams(query, other = mapOf("limit" to limit, "time" to time, "direction" to direction?.apiValue))
 
-        return webClient.get(RequestParameters("$apiEndpoint/loki/api/v1/query", LokiResponse::class, queryParameters = queryParams, authentication = authentication))
+        return webClient.get(RequestParameters("$apiEndpoint/query", LokiResponse::class, queryParameters = queryParams, authentication = authentication))
             .mapResponseBodyIfSuccessful { body -> mapper.mapVectorOrStreamsResponse(body) }
     }
 
@@ -138,7 +138,7 @@ open class LokiClient(
      * Send log entries to Loki.
      */
     open suspend fun ingestLogs(logEntries: List<LogStream>): WebClientResult<Boolean> =
-        webClient.post(RequestParameters("$apiEndpoint/loki/api/v1/push", Unit::class, PushLogsRequestBody(logEntries), authentication = authentication))
+        webClient.post(RequestParameters("$apiEndpoint/push", Unit::class, PushLogsRequestBody(logEntries), authentication = authentication))
             // If block_ingestion_until is configured and push requests are blocked, the endpoint will return the
             // status code configured in block_ingestion_status_code (260 by default) along with an error message.
             // If the configured status code is 200, no error message will be returned.
@@ -174,7 +174,7 @@ open class LokiClient(
     ): WebClientResult<LabelsResponse> {
         val queryParams = queryParams(query, start, end, since)
 
-        return webClient.get(RequestParameters("$apiEndpoint/loki/api/v1/label", LabelsResponse::class, queryParameters = queryParams, authentication = authentication))
+        return webClient.get(RequestParameters("$apiEndpoint/label", LabelsResponse::class, queryParameters = queryParams, authentication = authentication))
     }
 
 
@@ -208,7 +208,7 @@ open class LokiClient(
     ): WebClientResult<LabelValuesResponse> {
         val queryParams = queryParams(query, start, end, since)
 
-        return webClient.get(RequestParameters("$apiEndpoint/loki/api/v1/label/$label/values", LabelValuesResponse::class, queryParameters = queryParams, authentication = authentication))
+        return webClient.get(RequestParameters("$apiEndpoint/label/$label/values", LabelValuesResponse::class, queryParameters = queryParams, authentication = authentication))
     }
 
 
@@ -244,7 +244,7 @@ open class LokiClient(
 
         val queryParams = queryParams(null, start, end, since, mapOf("match[]" to assertQueryFormat(query)))
 
-        return webClient.get(RequestParameters("$apiEndpoint/loki/api/v1/series", StreamsResponse::class, queryParameters = queryParams, authentication = authentication))
+        return webClient.get(RequestParameters("$apiEndpoint/series", StreamsResponse::class, queryParameters = queryParams, authentication = authentication))
     }
 
 
@@ -286,7 +286,7 @@ open class LokiClient(
         // TODO: for larger queries use POST and url-encoded request body
         val queryParams = queryParams(query, start, end, since)
 
-        return webClient.get(RequestParameters("$apiEndpoint/loki/api/v1/index/stats", LogStatisticsResponse::class, queryParameters = queryParams, authentication = authentication))
+        return webClient.get(RequestParameters("$apiEndpoint/index/stats", LogStatisticsResponse::class, queryParameters = queryParams, authentication = authentication))
     }
 
 
@@ -372,7 +372,7 @@ open class LokiClient(
             "aggregateBy" to aggregateBy?.apiValue
         ))
 
-        return webClient.get(RequestParameters("$apiEndpoint/loki/api/v1/index/volume", VectorResponse::class, queryParameters = queryParams, authentication = authentication))
+        return webClient.get(RequestParameters("$apiEndpoint/index/volume", VectorResponse::class, queryParameters = queryParams, authentication = authentication))
     }
 
     /**
@@ -468,7 +468,7 @@ open class LokiClient(
             "aggregateBy" to aggregateBy?.apiValue
         ))
 
-        val response = webClient.get(RequestParameters("$apiEndpoint/loki/api/v1/index/volume_range", LokiResponse::class, queryParameters = queryParams, authentication = authentication))
+        val response = webClient.get(RequestParameters("$apiEndpoint/index/volume_range", LokiResponse::class, queryParameters = queryParams, authentication = authentication))
 
         // i guess it's a bug in Loki that it sometimes returns a VectorResponse instead of a MatrixResponse
         return response.mapResponseBodyIfSuccessful { body -> mapper.mapVectorOrMatrixResponse(body.data) }
@@ -522,7 +522,7 @@ open class LokiClient(
         // TODO: for larger queries use POST and url-encoded request body
         val queryParams = queryParams(query, start, end, since, mapOf("step" to step))
 
-        return webClient.get(RequestParameters("$apiEndpoint/loki/api/v1/patterns", PatternResponse::class, queryParameters = queryParams, authentication = authentication))
+        return webClient.get(RequestParameters("$apiEndpoint/patterns", PatternResponse::class, queryParameters = queryParams, authentication = authentication))
     }
 
 
@@ -565,7 +565,7 @@ open class LokiClient(
             "max_interval" to maxInterval
         ))
 
-        val response = webClient.put(RequestParameters("$apiEndpoint/loki/api/v1/delete", String::class, queryParameters = queryParams, authentication = authentication))
+        val response = webClient.put(RequestParameters("$apiEndpoint/delete", String::class, queryParameters = queryParams, authentication = authentication))
 
         return response.mapResponseBodyIfSuccessful { body -> response.statusCode == 204 }
     }
@@ -580,7 +580,7 @@ open class LokiClient(
      * It does not list canceled requests, as those requests will have been removed from storage.
      */
     open suspend fun listLogDeletionRequests(): WebClientResult<List<LogDeletionRequest>> {
-        val response = webClient.get(RequestParameters("$apiEndpoint/loki/api/v1/delete", String::class, authentication = authentication))
+        val response = webClient.get(RequestParameters("$apiEndpoint/delete", String::class, authentication = authentication))
 
         // don't know why, but KtorWebClient fails to decode a List, so we need to do it manually
         return response.mapResponseBodyIfSuccessful { body ->
@@ -618,7 +618,7 @@ open class LokiClient(
             "force" to force
         ))
 
-        val response = webClient.delete(RequestParameters("$apiEndpoint/loki/api/v1/delete", String::class, queryParameters = queryParams, authentication = authentication))
+        val response = webClient.delete(RequestParameters("$apiEndpoint/delete", String::class, queryParameters = queryParams, authentication = authentication))
 
         return response.mapResponseBodyIfSuccessful { body -> response.statusCode == 204 }
     }
@@ -626,7 +626,7 @@ open class LokiClient(
 
 
     open suspend fun getBuildInformation(): WebClientResult<BuildInformation> =
-        webClient.get(RequestParameters("$apiEndpoint/loki/api/v1/status/buildinfo", BuildInformation::class, authentication = authentication))
+        webClient.get(RequestParameters("$apiEndpoint/status/buildinfo", BuildInformation::class, authentication = authentication))
 
 
     /*          Internal endpoints          */
