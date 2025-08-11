@@ -15,7 +15,7 @@ import kotlin.test.Test
 
 class LokiClientTest {
 
-    private val underTest = LokiClient(TestData.webClient, "/loki/internal")
+    private val underTest = LokiClient(TestData.lokiConfig, TestData.webClient)
 
 
     @Test

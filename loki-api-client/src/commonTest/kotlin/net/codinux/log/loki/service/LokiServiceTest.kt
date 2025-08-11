@@ -22,7 +22,7 @@ import kotlin.time.Duration.Companion.minutes
 
 class LokiServiceTest {
 
-    private val client = LokiClient(TestData.webClient)
+    private val client = LokiClient(TestData.lokiConfig, TestData.webClient)
 
     private val underTest = LokiService(client)
 
