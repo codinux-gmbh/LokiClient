@@ -1,6 +1,6 @@
 package net.codinux.log.loki.service
 
-import net.codinux.log.loki.api.LokiApiClient
+import net.codinux.log.loki.api.LokiClient
 import net.codinux.log.loki.api.dto.AggregateBy
 import net.codinux.log.loki.api.dto.LogDeletionRequest
 import net.codinux.log.loki.api.dto.LogStream
@@ -19,8 +19,8 @@ import net.codinux.log.loki.model.QueryLogResult
 import net.dankito.datetime.Instant
 import net.dankito.web.client.WebClientResult
 
-open class LokiApiService(
-    protected val client: LokiApiClient,
+open class LokiService(
+    protected val client: LokiClient,
 ) {
 
     /**
@@ -81,13 +81,13 @@ open class LokiApiService(
 
     open suspend fun getAllLabels(): Set<String> {
         return getAll { end ->
-            client.queryLabels(end = end, since = LokiApiClient.SinceMaxValue).body?.labels
+            client.queryLabels(end = end, since = LokiClient.SinceMaxValue).body?.labels
         }
     }
 
     open suspend fun getAllStreams(query: String): Set<Map<String, String>> {
         return getAll { end ->
-            client.queryStreams(query, end = end, since = LokiApiClient.SinceMaxValue).body?.streams?.takeUnless { it.isEmpty() }
+            client.queryStreams(query, end = end, since = LokiClient.SinceMaxValue).body?.streams?.takeUnless { it.isEmpty() }
         }
     }
 
@@ -134,7 +134,7 @@ open class LokiApiService(
 
     open suspend fun getLogVolumeRange(query: String, groupByLabels: List<String>? = null, aggregateBy: AggregateBy? = null): WebClientResult<List<GetLogVolumeResult>> {
         val response = client.queryLogVolumeRange(query, targetLabels = groupByLabels, aggregateBy = aggregateBy,
-            since = LokiApiClient.SinceMaxValue, step = "1d")
+            since = LokiClient.SinceMaxValue, step = "1d")
 
         return response.mapResponseBodyIfSuccessful { body ->
             val mapped = if (body.matrix != null) {

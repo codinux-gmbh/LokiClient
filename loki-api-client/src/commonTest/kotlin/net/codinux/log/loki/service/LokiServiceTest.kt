@@ -9,7 +9,7 @@ import assertk.assertions.isNotNull
 import assertk.assertions.isTrue
 import assertk.assertions.startsWith
 import kotlinx.coroutines.test.runTest
-import net.codinux.log.loki.api.LokiApiClient
+import net.codinux.log.loki.api.LokiClient
 import net.codinux.log.loki.extensions.toLokiTimestamp
 import net.codinux.log.loki.model.LogEntryToSave
 import net.codinux.log.loki.model.days
@@ -20,11 +20,11 @@ import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
 
-class LokiApiServiceTest {
+class LokiServiceTest {
 
-    private val client = LokiApiClient(TestData.webClient)
+    private val client = LokiClient(TestData.webClient)
 
-    private val underTest = LokiApiService(client)
+    private val underTest = LokiService(client)
 
 
     @Test

@@ -10,7 +10,7 @@ import net.dankito.web.client.WebClientResult
 import net.dankito.web.client.get
 import net.dankito.web.client.post
 
-open class LokiApiClient(
+open class LokiClient(
     protected val webClient: WebClient,
     /**
      * In case internal endpoints like /ready, /config, /services, /metrics, ...

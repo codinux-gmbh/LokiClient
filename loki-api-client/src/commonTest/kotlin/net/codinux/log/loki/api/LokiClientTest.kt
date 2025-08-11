@@ -13,9 +13,9 @@ import net.dankito.datetime.LocalDate
 import kotlin.test.Ignore
 import kotlin.test.Test
 
-class LokiApiClientTest {
+class LokiClientTest {
 
-    private val underTest = LokiApiClient(TestData.webClient, "/loki/internal")
+    private val underTest = LokiClient(TestData.webClient, "/loki/internal")
 
 
     @Test
@@ -112,7 +112,7 @@ class LokiApiClientTest {
 
     @Test
     fun queryLogVolume() = runTest {
-        val result = underTest.queryLogVolume(TestData.LogsWithJobLabelQuery, since = LokiApiClient.SinceMaxValue)
+        val result = underTest.queryLogVolume(TestData.LogsWithJobLabelQuery, since = LokiClient.SinceMaxValue)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
@@ -132,7 +132,7 @@ class LokiApiClientTest {
 
     @Test
     fun queryLogVolumeRange() = runTest {
-        val result = underTest.queryLogVolumeRange(TestData.LogsWithJobLabelQuery, since = LokiApiClient.SinceMaxValue, step = "1d")
+        val result = underTest.queryLogVolumeRange(TestData.LogsWithJobLabelQuery, since = LokiClient.SinceMaxValue, step = "1d")
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
@@ -149,7 +149,7 @@ class LokiApiClientTest {
 
     @Test
     fun queryLogVolumeRangeOfJobByNamespace() = runTest {
-        val result = underTest.queryLogVolumeRange("""job="podlogs",namespace="monitoring"""", since = LokiApiClient.SinceMaxValue, step = "1d", targetLabels = listOf("app"))
+        val result = underTest.queryLogVolumeRange("""job="podlogs",namespace="monitoring"""", since = LokiClient.SinceMaxValue, step = "1d", targetLabels = listOf("app"))
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
@@ -173,7 +173,7 @@ class LokiApiClientTest {
 
     @Test
     fun patternsDetection() = runTest {
-        val result = underTest.patternsDetection(TestData.LogsWithJobLabelQuery, since = LokiApiClient.SinceMaxValue)
+        val result = underTest.patternsDetection(TestData.LogsWithJobLabelQuery, since = LokiClient.SinceMaxValue)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
