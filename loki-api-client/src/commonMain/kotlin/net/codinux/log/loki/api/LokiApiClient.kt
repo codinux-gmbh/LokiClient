@@ -31,9 +31,9 @@ open class LokiApiClient(
      * Instant queries are only used for metric type LogQL queries and will return a 400
      * (Bad Request) in case a log type query is provided.
      *
-     * In other words: In most cases you want to use [queryRange]
+     * In other words: In most cases you want to use [rangeQuery]
      */
-    open suspend fun metricQuery(
+    open suspend fun instantQuery(
         /**
          * The [LogQL](https://grafana.com/docs/loki/latest/query/) query to perform.
          * Requests that do not use valid LogQL syntax will return errors.
@@ -64,7 +64,7 @@ open class LokiApiClient(
      * This type of query is often referred to as a range query.
      * Range queries are used for both log and metric type LogQL queries.
      */
-    open suspend fun queryRange(
+    open suspend fun rangeQuery(
         /**
          * The [LogQL](https://grafana.com/docs/loki/latest/query/) query to perform.
          */

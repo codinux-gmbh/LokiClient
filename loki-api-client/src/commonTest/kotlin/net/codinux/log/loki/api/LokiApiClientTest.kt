@@ -19,8 +19,8 @@ class LokiApiClientTest {
 
 
     @Test
-    fun metricQuery_VectorResult() = runTest {
-        val result = underTest.metricQuery(TestData.MetricsQuery)
+    fun instantQuery_VectorResult() = runTest {
+        val result = underTest.instantQuery(TestData.MetricsQuery)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
@@ -32,8 +32,8 @@ class LokiApiClientTest {
 
 
     @Test
-    fun queryRange_StreamsResult() = runTest {
-        val result = underTest.queryRange("""{namespace="kube-system"}""", since = 2.days)
+    fun rangeQuery_StreamsResult() = runTest {
+        val result = underTest.rangeQuery("""{namespace="kube-system"}""", since = 2.days)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
@@ -44,8 +44,8 @@ class LokiApiClientTest {
     }
 
     @Test
-    fun queryRange_MatrixResult() = runTest {
-        val result = underTest.queryRange(TestData.MetricsQuery)
+    fun rangeQuery_MatrixResult() = runTest {
+        val result = underTest.rangeQuery(TestData.MetricsQuery)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()

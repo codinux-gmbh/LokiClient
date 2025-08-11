@@ -10,7 +10,6 @@ import net.codinux.log.loki.extensions.minusThirtyDays
 import net.codinux.log.loki.model.GetLogVolumeResult
 import net.codinux.log.loki.model.LabelAnalyzationResult
 import net.codinux.log.loki.model.LabelAnalyzationResults
-import net.codinux.log.loki.model.LogEntry
 import net.codinux.log.loki.model.LogEntryToSave
 import net.codinux.log.loki.model.LokiTimestamp
 import net.codinux.log.loki.model.MetricValue
@@ -38,7 +37,7 @@ open class LokiApiService(
     open suspend fun queryLogs(query: String,
                                start: LokiTimestamp? = null, end: LokiTimestamp? = null, since: PrometheusDuration? = null,
                                direction: SortOrder? = null, limit: Int? = null, interval: PrometheusDuration? = null): WebClientResult<List<QueryLogResult>> =
-        client.queryRange(query, start, end, since, limit, null, interval, direction)
+        client.rangeQuery(query, start, end, since, limit, null, interval, direction)
             .mapResponseBodyIfSuccessful { body ->
                 if (body.matrix != null) {
                     throw IllegalArgumentException("""You specified a metric query like `count_over_time()`, `rate()`, .... " +
@@ -62,7 +61,7 @@ open class LokiApiService(
     open suspend fun queryMetrics(query: String,
                                start: LokiTimestamp? = null, end: LokiTimestamp? = null, since: PrometheusDuration? = null,
                                direction: SortOrder? = null, limit: Int? = null, step: PrometheusDuration? = null): WebClientResult<List<MetricsResult>> =
-        client.queryRange(query, start, end, since, limit, step, null, direction)
+        client.rangeQuery(query, start, end, since, limit, step, null, direction)
             .mapResponseBodyIfSuccessful { body ->
                 if (body.streams != null) {
                     throw IllegalArgumentException("""You specified a log query like `{job="podlogs"} |= "line filter"`. " +
