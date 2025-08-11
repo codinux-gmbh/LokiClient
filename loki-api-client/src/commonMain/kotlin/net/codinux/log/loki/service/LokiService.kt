@@ -1,11 +1,11 @@
 package net.codinux.log.loki.service
 
-import net.codinux.log.loki.api.LokiClient
-import net.codinux.log.loki.api.dto.AggregateBy
-import net.codinux.log.loki.api.dto.LogDeletionRequest
-import net.codinux.log.loki.api.dto.LogStream
-import net.codinux.log.loki.api.dto.LogStreamValue
-import net.codinux.log.loki.api.dto.SortOrder
+import net.codinux.log.loki.client.LokiClient
+import net.codinux.log.loki.client.dto.AggregateBy
+import net.codinux.log.loki.client.dto.LogDeletionRequest
+import net.codinux.log.loki.client.dto.LogStream
+import net.codinux.log.loki.client.dto.LogStreamValue
+import net.codinux.log.loki.client.dto.SortOrder
 import net.codinux.log.loki.extensions.minusThirtyDays
 import net.codinux.log.loki.model.GetLogVolumeResult
 import net.codinux.log.loki.model.LabelAnalyzationResult

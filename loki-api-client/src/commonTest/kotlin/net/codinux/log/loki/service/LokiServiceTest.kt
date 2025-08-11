@@ -9,7 +9,7 @@ import assertk.assertions.isNotNull
 import assertk.assertions.isTrue
 import assertk.assertions.startsWith
 import kotlinx.coroutines.test.runTest
-import net.codinux.log.loki.api.LokiClient
+import net.codinux.log.loki.client.LokiClient
 import net.codinux.log.loki.extensions.toLokiTimestamp
 import net.codinux.log.loki.model.LogEntryToSave
 import net.codinux.log.loki.model.days
