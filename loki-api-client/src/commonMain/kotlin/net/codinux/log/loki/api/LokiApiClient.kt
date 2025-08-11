@@ -26,40 +26,6 @@ open class LokiApiClient(
 
 
     /**
-     * `/loki/api/v1/query` allows for doing queries against a single point in time.
-     * This type of query is often referred to as an instant query.
-     * Instant queries are only used for metric type LogQL queries and will return a 400
-     * (Bad Request) in case a log type query is provided.
-     *
-     * In other words: In most cases you want to use [rangeQuery]
-     */
-    open suspend fun instantQuery(
-        /**
-         * The [LogQL](https://grafana.com/docs/loki/latest/query/) query to perform.
-         * Requests that do not use valid LogQL syntax will return errors.
-         */
-        query: String,
-        /**
-         * The max number of entries to return. It defaults to `100`. Only applies to query
-         * types which produce a stream (log lines) response.
-         */
-        limit: Int? = null,
-        /**
-         * The evaluation time for the query as a nanosecond Unix epoch or another supported format. Defaults to now.
-         */
-        time: LokiTimestamp? = null,
-        /**
-         * Determines the sort order of logs. Defaults to `backward`.
-         */
-        direction: SortOrder? = null,
-    ): WebClientResult<VectorOrStreams> {
-        val queryParams = queryParams(query, other = mapOf("limit" to limit, "time" to time, "direction" to direction?.apiValue))
-
-        return webClient.get(RequestParameters("/loki/api/v1/query", LokiResponse::class, queryParameters = queryParams))
-            .mapResponseBodyIfSuccessful { body -> mapper.mapVectorOrStreamsResponse(body) }
-    }
-
-    /**
      * `/loki/api/v1/query_range` is used to do a query over a range of time.
      * This type of query is often referred to as a range query.
      * Range queries are used for both log and metric type LogQL queries.
@@ -126,6 +92,40 @@ open class LokiApiClient(
 
         return webClient.get(RequestParameters("/loki/api/v1/query_range", LokiResponse::class, queryParameters = queryParams))
             .mapResponseBodyIfSuccessful { body -> mapper.mapMatrixOrStreamsResponse(body) }
+    }
+
+    /**
+     * `/loki/api/v1/query` allows for doing queries against a single point in time.
+     * This type of query is often referred to as an instant query.
+     * Instant queries are only used for metric type LogQL queries and will return a 400
+     * (Bad Request) in case a log type query is provided.
+     *
+     * In other words: In most cases you want to use [rangeQuery]
+     */
+    open suspend fun instantQuery(
+        /**
+         * The [LogQL](https://grafana.com/docs/loki/latest/query/) query to perform.
+         * Requests that do not use valid LogQL syntax will return errors.
+         */
+        query: String,
+        /**
+         * The max number of entries to return. It defaults to `100`. Only applies to query
+         * types which produce a stream (log lines) response.
+         */
+        limit: Int? = null,
+        /**
+         * The evaluation time for the query as a nanosecond Unix epoch or another supported format. Defaults to now.
+         */
+        time: LokiTimestamp? = null,
+        /**
+         * Determines the sort order of logs. Defaults to `backward`.
+         */
+        direction: SortOrder? = null,
+    ): WebClientResult<VectorOrStreams> {
+        val queryParams = queryParams(query, other = mapOf("limit" to limit, "time" to time, "direction" to direction?.apiValue))
+
+        return webClient.get(RequestParameters("/loki/api/v1/query", LokiResponse::class, queryParameters = queryParams))
+            .mapResponseBodyIfSuccessful { body -> mapper.mapVectorOrStreamsResponse(body) }
     }
 
 

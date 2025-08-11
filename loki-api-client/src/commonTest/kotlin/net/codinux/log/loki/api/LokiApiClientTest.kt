@@ -19,19 +19,6 @@ class LokiApiClientTest {
 
 
     @Test
-    fun instantQuery_VectorResult() = runTest {
-        val result = underTest.instantQuery(TestData.MetricsQuery)
-
-        assertThat(result::successful).isTrue()
-        assertThat(result::body).isNotNull()
-
-        val body = result.body!!
-        assertThat(body::type).isEqualTo(ResultType.Vector)
-        assertThat(body::vector).isNotNull().isNotEmpty()
-    }
-
-
-    @Test
     fun rangeQuery_StreamsResult() = runTest {
         val result = underTest.rangeQuery("""{namespace="kube-system"}""", since = 2.days)
 
@@ -53,6 +40,19 @@ class LokiApiClientTest {
         val body = result.body!!
         assertThat(body::type).isEqualTo(ResultType.Matrix)
         assertThat(body::matrix).isNotNull().isNotEmpty()
+    }
+
+
+    @Test
+    fun instantQuery_VectorResult() = runTest {
+        val result = underTest.instantQuery(TestData.MetricsQuery)
+
+        assertThat(result::successful).isTrue()
+        assertThat(result::body).isNotNull()
+
+        val body = result.body!!
+        assertThat(body::type).isEqualTo(ResultType.Vector)
+        assertThat(body::vector).isNotNull().isNotEmpty()
     }
 
 
