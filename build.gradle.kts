@@ -21,7 +21,9 @@ allprojects {
     version = "1.0.0-SNAPSHOT"
 
 
-    ext["sourceCodeRepositoryBaseUrl"] = "github.com/codinux/LokiApi"
+    ext["projectName"] = "Loki Client"
+    ext["sourceCodeRepositoryBaseUrl"] = "github.com/codinux-gmbh/LokiClient"
+    ext["projectInceptionYear"] = "2025"
 
-    ext["projectDescription"] = "Implements the Loki (https://grafana.com/docs/loki) HTTP API for all Kotlin Multiplatform targets"
+    ext["projectDescription"] = "Implements the Loki (https://grafana.com/docs/loki) HTTP API to query from and push logs to Loki for all Kotlin Multiplatform targets"
 }
