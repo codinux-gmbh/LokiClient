@@ -118,6 +118,8 @@ kotlin {
 }
 
 
+ext["customArtifactId"] = "loki-client"
+
 if (File(projectDir, "../gradle/scripts/publish-codinux.gradle.kts").exists()) {
     apply(from = "../gradle/scripts/publish-codinux.gradle.kts")
 }

@@ -1,5 +1,5 @@
 # LogData
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.codinux.log/loki/loki-api/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.codinux.log/loki/loki-api)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.codinux.log.loki/loki-client/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.codinux.log.loki/loki-client)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
@@ -26,7 +26,7 @@ So you can build cross-platform logging tools or dashboards and integrate loggin
 ### Gradle
 
 ```
-implementation("net.codinux.log.loki:loki-api:1.0.0")
+implementation("net.codinux.log.loki:loki-client:1.0.0")
 ```
 
 ### Maven
@@ -34,7 +34,7 @@ implementation("net.codinux.log.loki:loki-api:1.0.0")
 ```xml
 <dependency>
    <groupId>net.codinux.log.loki</groupId>
-   <artifactId>lok-api-jvm</artifactId>
+   <artifactId>loki-client-jvm</artifactId>
    <version>1.0.0</version>
 </dependency>
 ```
