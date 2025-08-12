@@ -1,4 +1,4 @@
-# LogData
+# Loki Client
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.codinux.log.loki/loki-client/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.codinux.log.loki/loki-client)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
