@@ -170,7 +170,7 @@ open class LokiService(
             null
         }
 
-        return deletionResponse.mapResponseBodyIfSuccessful { body -> createLogDeletionRequest }
+        return deletionResponse.mapResponseBodyIfSuccessful { _ -> createLogDeletionRequest }
     }
 
 

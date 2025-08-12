@@ -567,7 +567,7 @@ open class LokiClient(
 
         val response = webClient.put(RequestParameters("$apiEndpoint/delete", String::class, queryParameters = queryParams, authentication = authentication))
 
-        return response.mapResponseBodyIfSuccessful { body -> response.statusCode == 204 }
+        return response.mapResponseBodyIfSuccessful { _ -> response.statusCode == 204 }
     }
 
     /**
@@ -620,7 +620,7 @@ open class LokiClient(
 
         val response = webClient.delete(RequestParameters("$apiEndpoint/delete", String::class, queryParameters = queryParams, authentication = authentication))
 
-        return response.mapResponseBodyIfSuccessful { body -> response.statusCode == 204 }
+        return response.mapResponseBodyIfSuccessful { _ -> response.statusCode == 204 }
     }
 
 
