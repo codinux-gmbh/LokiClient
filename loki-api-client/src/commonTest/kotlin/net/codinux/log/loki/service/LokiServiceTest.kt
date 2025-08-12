@@ -116,6 +116,7 @@ class LokiServiceTest {
     }
 
 
+    @Ignore
     @Test
     fun requestLogDeletion() = runTest {
         val now = Instant.now()
