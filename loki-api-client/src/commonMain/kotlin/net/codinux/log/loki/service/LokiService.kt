@@ -73,6 +73,9 @@ open class LokiService(
             }
 
 
+    open suspend fun ingestLogs(vararg logEntries: LogEntryToSave) =
+        ingestLogs(logEntries.toList())
+
     open suspend fun ingestLogs(logEntries: List<LogEntryToSave>): WebClientResult<Boolean> =
         client.ingestLogs(logEntries.map { LogStream(it.labels, listOf(
             LogStreamValue(it.timestamp.timestamp.toEpochNanosecondsString(),  it.message, it.structuredMetadata)
