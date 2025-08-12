@@ -23,6 +23,11 @@ open class LokiClient(
     }
 
 
+    constructor(baseUrl: String, webClient: WebClient) : this(baseUrl, null, webClient)
+
+    constructor(baseUrl: String, authentication: Authentication?, webClient: WebClient) : this(LokiConfig(baseUrl, authentication), webClient)
+
+
     protected val apiEndpoint = removeSlashAtEnd(config.baseUrl) + "/loki/api/v1"
 
     protected val internalEndpoint = removeSlashAtEnd(config.baseUrl) + removeSlashAtEnd(config.internalEndpointsPathPrefix ?: "")
