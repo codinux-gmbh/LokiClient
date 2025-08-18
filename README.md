@@ -128,6 +128,22 @@ val valuesOfLabelNamespace = client.queryLabelValues("namespace")
 ```
 
 
+### Get index volume
+
+```kotlin
+// e.g. get Log volume of each namespace
+service.getIndexVolume("namespace=~\".+\"").mapResponseBodyIfSuccessful { response, indexVolumes ->
+    indexVolumes.forEach { volume -> println("${volume.metrics["namespace"]}: ${volume.aggregatedValue}") }
+}
+
+// group log volume by labels like 'service_name' and aggregate by labels or series
+service.getIndexVolume("", groupByLabels = listOf("service_name"), aggregateBy = AggregateBy.Labels)
+```
+
+
+### Pattern detection
+
+
 ### Analyze
 
 ```kotlin
@@ -138,19 +154,6 @@ results.labels.forEach {
 }
 
 val streamsInNamespaceMonitoring: Set<Map<String, String>> = service.getAllStreams("namespace=~\"monitoring\"")
-```
-
-
-### Get log volume
-
-```kotlin
-// e.g. get Log volume of each namespace
-service.getLogVolume("namespace=~\".+\"").mapResponseBodyIfSuccessful { response, logVolumes ->
-    logVolumes.forEach { volume -> println("${volume.metrics["namespace"]}: ${volume.aggregatedValue}") }
-}
-
-// group log volume by labels like 'service_name' and aggregate by labels or series
-service.getLogVolume("", groupByLabels = listOf("service_name"), aggregateBy = AggregateBy.Labels)
 ```
 
 

@@ -7,7 +7,7 @@ import net.codinux.log.loki.client.dto.LogStream
 import net.codinux.log.loki.client.dto.LogStreamValue
 import net.codinux.log.loki.client.dto.SortOrder
 import net.codinux.log.loki.extensions.minusThirtyDays
-import net.codinux.log.loki.model.GetLogVolumeResult
+import net.codinux.log.loki.model.GetIndexVolumeResult
 import net.codinux.log.loki.model.LabelAnalyzationResult
 import net.codinux.log.loki.model.LabelAnalyzationResults
 import net.codinux.log.loki.model.LogEntryToSave
@@ -123,30 +123,30 @@ open class LokiService(
     }
 
 
-    open suspend fun getLogVolume(query: String, groupByLabels: List<String>? = null, aggregateBy: AggregateBy? = null): WebClientResult<List<GetLogVolumeResult>> {
-        val response = client.queryLogVolume(query, targetLabels = groupByLabels, aggregateBy = aggregateBy)
+    open suspend fun getIndexVolume(query: String, groupByLabels: List<String>? = null, aggregateBy: AggregateBy? = null): WebClientResult<List<GetIndexVolumeResult>> {
+        val response = client.queryIndexVolume(query, targetLabels = groupByLabels, aggregateBy = aggregateBy)
 
         return response.mapResponseBodyIfSuccessful { body ->
             val vectorData = body.data.result
             val mapped =vectorData.map { datum ->
-                GetLogVolumeResult(datum.metric, datum.value.valueAsLong, listOf(datum.value))
+                GetIndexVolumeResult(datum.metric, datum.value.valueAsLong, listOf(datum.value))
             }
             mapped.sortedByDescending { it.aggregatedValue }
         }
     }
 
-    open suspend fun getLogVolumeRange(query: String, groupByLabels: List<String>? = null, aggregateBy: AggregateBy? = null): WebClientResult<List<GetLogVolumeResult>> {
-        val response = client.queryLogVolumeRange(query, targetLabels = groupByLabels, aggregateBy = aggregateBy,
+    open suspend fun getIndexVolumeRange(query: String, groupByLabels: List<String>? = null, aggregateBy: AggregateBy? = null): WebClientResult<List<GetIndexVolumeResult>> {
+        val response = client.queryIndexVolumeRange(query, targetLabels = groupByLabels, aggregateBy = aggregateBy,
             since = LokiClient.SinceMaxValue, step = "1d")
 
         return response.mapResponseBodyIfSuccessful { body ->
             val mapped = if (body.matrix != null) {
                 response.body!!.matrix!!.map { datum ->
-                    GetLogVolumeResult(datum.metric, datum.values.sumOf { it.valueAsLong }, datum.values)
+                    GetIndexVolumeResult(datum.metric, datum.values.sumOf { it.valueAsLong }, datum.values)
                 }
             } else {
                 response.body!!.vector!!.map { datum ->
-                    GetLogVolumeResult(datum.metric, datum.value.valueAsLong, listOf(datum.value))
+                    GetIndexVolumeResult(datum.metric, datum.value.valueAsLong, listOf(datum.value))
                 }
             }
             mapped.sortedByDescending { it.aggregatedValue }

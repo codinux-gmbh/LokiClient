@@ -76,14 +76,14 @@ class ShowUsage {
         val streamsInNamespaceMonitoring: Set<Map<String, String>> = service.getAllStreams("namespace=~\"monitoring\"")
     }
 
-    suspend fun getLogVolume() {
+    suspend fun getIndexVolume() {
         // e.g. get Log volume of each namespace
-        service.getLogVolume("namespace=~\".+\"").mapResponseBodyIfSuccessful { response, logVolumes ->
-            logVolumes.forEach { volume -> println("${volume.metrics["namespace"]}: ${volume.aggregatedValue}") }
+        service.getIndexVolume("namespace=~\".+\"").mapResponseBodyIfSuccessful { response, indexVolumes ->
+            indexVolumes.forEach { volume -> println("${volume.metrics["namespace"]}: ${volume.aggregatedValue}") }
         }
 
         // group log volume by labels like 'service_name' and aggregate by labels or series
-        service.getLogVolume("namespace=~\".+\"", groupByLabels = listOf("service_name"), aggregateBy = AggregateBy.Labels)
+        service.getIndexVolume("namespace=~\".+\"", groupByLabels = listOf("service_name"), aggregateBy = AggregateBy.Labels)
     }
 
 }

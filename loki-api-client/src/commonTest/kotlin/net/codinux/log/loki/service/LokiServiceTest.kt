@@ -100,16 +100,16 @@ class LokiServiceTest {
 
 
     @Test
-    fun getLogVolume() = runTest {
-        val result = underTest.getLogVolume(TestData.LogsWithNamespaceLabelQuery)
+    fun getIndexVolume() = runTest {
+        val result = underTest.getIndexVolume(TestData.LogsWithNamespaceLabelQuery)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull().isNotEmpty()
     }
 
     @Test
-    fun getLogVolumeGroupedByNamespaceAndApp() = runTest {
-        val result = underTest.getLogVolume(TestData.LogsWithNamespaceLabelQuery, listOf("namespace", "app"))
+    fun getIndexVolumeGroupedByNamespaceAndApp() = runTest {
+        val result = underTest.getIndexVolume(TestData.LogsWithNamespaceLabelQuery, listOf("namespace", "app"))
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull().isNotEmpty()
