@@ -35,7 +35,7 @@ class ShowUsage {
     suspend fun queryLogs() {
         // query logs of namespace 'monitoring' of last 2 hours
         val result = service.queryLogs(query = """{namespace="monitoring"}""", start = LokiTimestamp(Instant.now().minusHours(2)))
-        result.mapResponseBodyIfSuccessful { logs ->
+        result.mapBodyOnSuccess { logs ->
             println("Retrieved ${logs.size} logs:")
             logs.forEachIndexed { index, log -> println("[${index + 1}] $log") }
         }
@@ -78,7 +78,7 @@ class ShowUsage {
 
     suspend fun getIndexVolume() {
         // e.g. get Log volume of each namespace
-        service.getIndexVolume("namespace=~\".+\"").mapResponseBodyIfSuccessful { response, indexVolumes ->
+        service.getIndexVolume("namespace=~\".+\"").mapBodyWithResponseOnSuccess { response, indexVolumes ->
             indexVolumes.forEach { volume -> println("${volume.metrics["namespace"]}: ${volume.aggregatedValue}") }
         }
 

@@ -38,7 +38,7 @@ open class LokiService(
                                start: LokiTimestamp? = null, end: LokiTimestamp? = null, since: PrometheusDuration? = null,
                                direction: SortOrder? = null, limit: Int? = null, interval: PrometheusDuration? = null): WebClientResult<List<QueryLogResult>> =
         client.rangeQuery(query, start, end, since, limit, null, interval, direction)
-            .mapResponseBodyIfSuccessful { body ->
+            .mapBodyOnSuccess { body ->
                 if (body.matrix != null) {
                     throw IllegalArgumentException("""You specified a metric query like `count_over_time()`, `rate()`, .... " +
                             "Use method queryMetrics() for that. This method is only for logs queries like `{job="podlogs"} |= "line filter"`."""")
@@ -62,7 +62,7 @@ open class LokiService(
                                start: LokiTimestamp? = null, end: LokiTimestamp? = null, since: PrometheusDuration? = null,
                                direction: SortOrder? = null, limit: Int? = null, step: PrometheusDuration? = null): WebClientResult<List<MetricsResult>> =
         client.rangeQuery(query, start, end, since, limit, step, null, direction)
-            .mapResponseBodyIfSuccessful { body ->
+            .mapBodyOnSuccess { body ->
                 if (body.streams != null) {
                     throw IllegalArgumentException("""You specified a log query like `{job="podlogs"} |= "line filter"`. " +
                             "Use method queryLogs() for that. This method is only for metrics queries like `count_over_time()`, `rate()`, ..."""")
@@ -126,7 +126,7 @@ open class LokiService(
     open suspend fun getIndexVolume(query: String, groupByLabels: List<String>? = null, aggregateBy: AggregateBy? = null): WebClientResult<List<GetIndexVolumeResult>> {
         val response = client.queryIndexVolume(query, targetLabels = groupByLabels, aggregateBy = aggregateBy)
 
-        return response.mapResponseBodyIfSuccessful { body ->
+        return response.mapBodyOnSuccess { body ->
             val vectorData = body.data.result
             val mapped =vectorData.map { datum ->
                 GetIndexVolumeResult(datum.metric, datum.value.valueAsLong, listOf(datum.value))
@@ -139,7 +139,7 @@ open class LokiService(
         val response = client.queryIndexVolumeRange(query, targetLabels = groupByLabels, aggregateBy = aggregateBy,
             since = PrometheusDuration.SinceMaxValue, step = "1d")
 
-        return response.mapResponseBodyIfSuccessful { body ->
+        return response.mapBodyOnSuccess { body ->
             val mapped = if (body.matrix != null) {
                 response.body!!.matrix!!.map { datum ->
                     GetIndexVolumeResult(datum.metric, datum.values.sumOf { it.valueAsLong }, datum.values)
@@ -173,7 +173,7 @@ open class LokiService(
             null
         }
 
-        return deletionResponse.mapResponseBodyIfSuccessful { _ -> createLogDeletionRequest }
+        return deletionResponse.mapBodyOnSuccess { createLogDeletionRequest }
     }
 
 

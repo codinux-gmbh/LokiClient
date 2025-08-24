@@ -99,7 +99,7 @@ open class LokiClient(
         ))
 
         return webClient.get(RequestParameters("$apiEndpoint/query_range", LokiResponse::class, queryParameters = queryParams, authentication = authentication))
-            .mapResponseBodyIfSuccessful { body -> mapper.mapMatrixOrStreamsResponse(body) }
+            .mapBodyOnSuccess { body -> mapper.mapMatrixOrStreamsResponse(body) }
     }
 
     /**
@@ -133,7 +133,7 @@ open class LokiClient(
         val queryParams = queryParams(query, other = mapOf("limit" to limit, "time" to time, "direction" to direction?.apiValue))
 
         return webClient.get(RequestParameters("$apiEndpoint/query", LokiResponse::class, queryParameters = queryParams, authentication = authentication))
-            .mapResponseBodyIfSuccessful { body -> mapper.mapVectorOrStreamsResponse(body) }
+            .mapBodyOnSuccess { body -> mapper.mapVectorOrStreamsResponse(body) }
     }
 
 
@@ -474,7 +474,7 @@ open class LokiClient(
         val response = webClient.get(RequestParameters("$apiEndpoint/index/volume_range", LokiResponse::class, queryParameters = queryParams, authentication = authentication))
 
         // i guess it's a bug in Loki that it sometimes returns a VectorResponse instead of a MatrixResponse
-        return response.mapResponseBodyIfSuccessful { body -> mapper.mapVectorOrMatrixResponse(body.data) }
+        return response.mapBodyOnSuccess { body -> mapper.mapVectorOrMatrixResponse(body.data) }
     }
 
 
@@ -570,7 +570,7 @@ open class LokiClient(
 
         val response = webClient.put(RequestParameters("$apiEndpoint/delete", String::class, queryParameters = queryParams, authentication = authentication))
 
-        return response.mapResponseBodyIfSuccessful { _ -> response.statusCode == 204 }
+        return response.mapBodyOnSuccess { response.statusCode == 204 }
     }
 
     /**
@@ -586,7 +586,7 @@ open class LokiClient(
         val response = webClient.get(RequestParameters("$apiEndpoint/delete", String::class, authentication = authentication))
 
         // don't know why, but KtorWebClient fails to decode a List, so we need to do it manually
-        return response.mapResponseBodyIfSuccessful { body ->
+        return response.mapBodyOnSuccess { body ->
             mapper.mapLogDeletionRequestList(body)
         }
     }
@@ -623,7 +623,7 @@ open class LokiClient(
 
         val response = webClient.delete(RequestParameters("$apiEndpoint/delete", String::class, queryParameters = queryParams, authentication = authentication))
 
-        return response.mapResponseBodyIfSuccessful { _ -> response.statusCode == 204 }
+        return response.mapBodyOnSuccess { response.statusCode == 204 }
     }
 
 
