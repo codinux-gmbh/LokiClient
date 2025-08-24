@@ -16,8 +16,6 @@ open class LokiClient(
 ) {
 
     companion object {
-        val SinceMaxValue = PrometheusDuration(30, PrometheusDurationUnit.Days)
-
         private fun removeSlashAtEnd(url: String): String =
             if (url.endsWith("/")) url.substring(0, url.length - 1) else url
     }

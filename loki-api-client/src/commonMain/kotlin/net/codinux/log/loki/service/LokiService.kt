@@ -84,13 +84,13 @@ open class LokiService(
 
     open suspend fun getAllLabels(): Set<String> {
         return getAll { end ->
-            client.queryLabels(end = end, since = LokiClient.SinceMaxValue).body?.labels
+            client.queryLabels(end = end, since = PrometheusDuration.SinceMaxValue).body?.labels
         }
     }
 
     open suspend fun getAllStreams(query: String): Set<Map<String, String>> {
         return getAll { end ->
-            client.queryStreams(query, end = end, since = LokiClient.SinceMaxValue).body?.streams?.takeUnless { it.isEmpty() }
+            client.queryStreams(query, end = end, since = PrometheusDuration.SinceMaxValue).body?.streams?.takeUnless { it.isEmpty() }
         }
     }
 
@@ -137,7 +137,7 @@ open class LokiService(
 
     open suspend fun getIndexVolumeRange(query: String, groupByLabels: List<String>? = null, aggregateBy: AggregateBy? = null): WebClientResult<List<GetIndexVolumeResult>> {
         val response = client.queryIndexVolumeRange(query, targetLabels = groupByLabels, aggregateBy = aggregateBy,
-            since = LokiClient.SinceMaxValue, step = "1d")
+            since = PrometheusDuration.SinceMaxValue, step = "1d")
 
         return response.mapResponseBodyIfSuccessful { body ->
             val mapped = if (body.matrix != null) {

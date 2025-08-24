@@ -6,6 +6,7 @@ import kotlinx.coroutines.test.runTest
 import net.codinux.log.loki.client.dto.ResultType
 import net.codinux.log.loki.extensions.minusThirtyDays
 import net.codinux.log.loki.model.LokiTimestamp
+import net.codinux.log.loki.model.PrometheusDuration
 import net.codinux.log.loki.model.days
 import net.codinux.log.loki.test.TestData
 import net.dankito.datetime.Instant
@@ -112,7 +113,7 @@ class LokiClientTest {
 
     @Test
     fun queryIndexVolume() = runTest {
-        val result = underTest.queryIndexVolume(TestData.LogsWithJobLabelQuery, since = LokiClient.SinceMaxValue)
+        val result = underTest.queryIndexVolume(TestData.LogsWithJobLabelQuery, since = PrometheusDuration.SinceMaxValue)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
@@ -132,7 +133,7 @@ class LokiClientTest {
 
     @Test
     fun queryIndexVolumeRange() = runTest {
-        val result = underTest.queryIndexVolumeRange(TestData.LogsWithJobLabelQuery, since = LokiClient.SinceMaxValue, step = "1d")
+        val result = underTest.queryIndexVolumeRange(TestData.LogsWithJobLabelQuery, since = PrometheusDuration.SinceMaxValue, step = "1d")
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
@@ -149,7 +150,7 @@ class LokiClientTest {
 
     @Test
     fun queryIndexVolumeRangeOfJobByNamespace() = runTest {
-        val result = underTest.queryIndexVolumeRange("""job="podlogs",namespace="monitoring"""", since = LokiClient.SinceMaxValue, step = "1d", targetLabels = listOf("app"))
+        val result = underTest.queryIndexVolumeRange("""job="podlogs",namespace="monitoring"""", since = PrometheusDuration.SinceMaxValue, step = "1d", targetLabels = listOf("app"))
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
@@ -173,7 +174,7 @@ class LokiClientTest {
 
     @Test
     fun patternsDetection() = runTest {
-        val result = underTest.patternsDetection(TestData.LogsWithJobLabelQuery, since = LokiClient.SinceMaxValue)
+        val result = underTest.patternsDetection(TestData.LogsWithJobLabelQuery, since = PrometheusDuration.SinceMaxValue)
 
         assertThat(result::successful).isTrue()
         assertThat(result::body).isNotNull()
