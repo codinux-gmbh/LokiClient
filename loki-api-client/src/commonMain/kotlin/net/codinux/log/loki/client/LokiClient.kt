@@ -16,6 +16,8 @@ open class LokiClient(
 ) {
 
     companion object {
+        const val LimitMaxValue = 5_000
+
         private fun removeSlashAtEnd(url: String): String =
             if (url.endsWith("/")) url.substring(0, url.length - 1) else url
     }
@@ -61,6 +63,8 @@ open class LokiClient(
         /**
          * The max number of entries to return. It defaults to `100`. Only applies to query
          * types which produce a stream (log lines) response.
+         *
+         * Maximum allowed value is `5000` (see [LimitMaxValue]).
          */
         limit: Int? = null,
         /**
@@ -119,6 +123,8 @@ open class LokiClient(
         /**
          * The max number of entries to return. It defaults to `100`. Only applies to query
          * types which produce a stream (log lines) response.
+         *
+         * Maximum allowed value is `5000` (see [LimitMaxValue]).
          */
         limit: Int? = null,
         /**
