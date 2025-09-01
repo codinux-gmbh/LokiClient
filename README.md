@@ -26,7 +26,7 @@ So you can build cross-platform logging tools or dashboards and integrate loggin
 ### Gradle
 
 ```
-implementation("net.codinux.log.loki:loki-client:0.5.0")
+implementation("net.codinux.log.loki:loki-client:0.6.0")
 ```
 
 ### Maven
@@ -35,7 +35,7 @@ implementation("net.codinux.log.loki:loki-client:0.5.0")
 <dependency>
    <groupId>net.codinux.log.loki</groupId>
    <artifactId>loki-client-jvm</artifactId>
-   <version>0.5.0</version>
+   <version>0.6.0</version>
 </dependency>
 ```
 
