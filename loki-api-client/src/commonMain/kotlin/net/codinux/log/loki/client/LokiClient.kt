@@ -8,6 +8,7 @@ import net.dankito.web.client.RequestParameters
 import net.dankito.web.client.WebClient
 import net.dankito.web.client.WebClientResult
 import net.dankito.web.client.auth.Authentication
+import net.dankito.web.client.websocket.WebSocket
 import net.dankito.web.client.websocket.WebSocketConfig
 
 open class LokiClient(
@@ -152,11 +153,11 @@ open class LokiClient(
      * - `limit`: The max number of entries to return. It defaults to `100`.
      * - `start`: The start time for the query as a nanosecond Unix epoch. Defaults to one hour ago.
      */
-    open suspend fun tail(query: String, delayForSeconds: Int? = null, limit: Int? = null, start: LokiTimestamp? = null, messageReceived: (WebSocketTailMessage) -> Unit) {
+    open suspend fun tail(query: String, delayForSeconds: Int? = null, limit: Int? = null, start: LokiTimestamp? = null, messageReceived: (WebSocketTailMessage) -> Unit): WebSocket {
         val queryParams = queryParams(query, start, other = mapOf("limit" to limit, "delay_for" to delayForSeconds))
         val config = WebSocketConfig("$apiEndpoint/tail".replace("http", "ws"), queryParams, authentication = authentication)
 
-        webClient.webSocket(config).apply {
+        return webClient.webSocket(config).apply {
             onSuccessfullyDeserializedTextMessage(WebSocketTailMessage::class) { tailMessage ->
                 messageReceived(tailMessage)
             }
