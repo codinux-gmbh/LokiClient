@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.*
 import kotlinx.coroutines.test.runTest
 import net.codinux.log.loki.client.dto.ResultType
+import net.codinux.log.loki.client.dto.WebSocketTailMessage
 import net.codinux.log.loki.extensions.minusThirtyDays
 import net.codinux.log.loki.model.LokiTimestamp
 import net.codinux.log.loki.model.PrometheusDuration
@@ -54,6 +55,23 @@ class LokiClientTest {
         val body = result.body!!
         assertThat(body::type).isEqualTo(ResultType.Vector)
         assertThat(body::vector).isNotNull().isNotEmpty()
+    }
+
+
+    @Test
+    fun tail() = runTest {
+        val results = mutableListOf<WebSocketTailMessage>()
+
+        underTest.tail(TestData.LogsWithNamespaceLabelQuery, start = LokiTimestamp.thirtyDaysAgo()) {
+            results.add(it)
+        }
+
+        val start = Instant.now().toEpochMilliseconds()
+        while (results.isEmpty() && Instant.now().toEpochMilliseconds() - start < 2_000) {
+
+        }
+
+        assertThat(results).isNotEmpty()
     }
 
 

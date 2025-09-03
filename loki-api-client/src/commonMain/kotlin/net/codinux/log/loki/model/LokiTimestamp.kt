@@ -1,5 +1,7 @@
 package net.codinux.log.loki.model
 
+import net.codinux.log.loki.extensions.minusThirtyDays
+import net.codinux.log.loki.extensions.toLokiTimestamp
 import net.dankito.datetime.Instant
 import net.dankito.datetime.LocalDate
 import net.dankito.datetime.LocalDateTime
@@ -38,6 +40,8 @@ value class LokiTimestamp(
             ofDateTime(LocalDateTime(year, month, day, hour, minute, second, nanosecondOfSecond))
 
         fun ofDateTime(dateTime: LocalDateTime) = LokiTimestamp(dateTime.toInstantAtUtc())
+
+        fun thirtyDaysAgo(): LokiTimestamp = Instant.now().minusThirtyDays().toLokiTimestamp()
 
     }
 

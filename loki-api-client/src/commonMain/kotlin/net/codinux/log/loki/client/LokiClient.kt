@@ -1,13 +1,14 @@
 package net.codinux.log.loki.client
 
+import net.codinux.log.logger
 import net.codinux.log.loki.client.dto.*
 import net.codinux.log.loki.model.LokiTimestamp
 import net.codinux.log.loki.model.PrometheusDuration
-import net.codinux.log.loki.model.PrometheusDurationUnit
 import net.dankito.web.client.RequestParameters
 import net.dankito.web.client.WebClient
 import net.dankito.web.client.WebClientResult
 import net.dankito.web.client.auth.Authentication
+import net.dankito.web.client.websocket.WebSocketConfig
 
 open class LokiClient(
     config: LokiConfig,
@@ -33,6 +34,8 @@ open class LokiClient(
     protected val internalEndpoint = removeSlashAtEnd(config.baseUrl) + removeSlashAtEnd(config.internalEndpointsPathPrefix ?: "")
 
     protected val authentication: Authentication? = config.authentication
+
+    protected val log by logger()
 
 
     /**
@@ -140,6 +143,37 @@ open class LokiClient(
 
         return webClient.get(RequestParameters("$apiEndpoint/query", LokiResponse::class, queryParameters = queryParams, authentication = authentication))
             .mapBodyOnSuccess { body -> mapper.mapVectorOrStreamsResponse(body) }
+    }
+
+    /**
+     * `/loki/api/v1/tail` is a WebSocket endpoint that streams log messages based on a query to the client. It accepts the following query parameters in the URL:
+     * - `query`: The [LogQL](https://grafana.com/docs/loki/latest/query/) query to perform.
+     * - `delay_for`: The number of seconds to delay retrieving logs to let slow loggers catch up. Defaults to `0` and cannot be larger than `5`.
+     * - `limit`: The max number of entries to return. It defaults to `100`.
+     * - `start`: The start time for the query as a nanosecond Unix epoch. Defaults to one hour ago.
+     */
+    open suspend fun tail(query: String, delayForSeconds: Int? = null, limit: Int? = null, start: LokiTimestamp? = null, messageReceived: (WebSocketTailMessage) -> Unit) {
+        val queryParams = queryParams(query, start, other = mapOf("limit" to limit, "delay_for" to delayForSeconds))
+        val config = WebSocketConfig("$apiEndpoint/tail".replace("http", "ws"), queryParams, authentication = authentication)
+
+        webClient.webSocket(config).apply {
+            onSuccessfullyDeserializedTextMessage(WebSocketTailMessage::class) { tailMessage ->
+                messageReceived(tailMessage)
+            }
+
+            onError { error ->
+                log.error(error) { "Retrieved error for WebSocket to Loki" }
+            }
+
+            onClose { statusCode, reason ->
+                if (statusCode == 1011 && reason == "reached tail max duration limit") { // per default Loki closes web sockets after one hour
+                    log.info { "Loki closed WebSocket connection to /tail endpoint, reconnecting ..." }
+                    tail(query, delayForSeconds, limit, start, messageReceived)
+                } else {
+                    log.info { "WebSocket connection to Loki /tail endpoint closed" }
+                }
+            }
+        }
     }
 
 

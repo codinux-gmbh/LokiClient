@@ -17,6 +17,7 @@ object TestData {
 
     val webClient = KtorWebClient(
         defaultUserAgent = "codinux Loki Client",
+        enableWebSocket = true,
     )
 
 }
