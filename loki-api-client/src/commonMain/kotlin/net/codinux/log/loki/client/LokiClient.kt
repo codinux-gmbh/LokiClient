@@ -2,12 +2,16 @@ package net.codinux.log.loki.client
 
 import net.codinux.log.logger
 import net.codinux.log.loki.client.dto.*
+import net.codinux.log.loki.extensions.toLokiTimestamp
 import net.codinux.log.loki.model.LokiTimestamp
 import net.codinux.log.loki.model.PrometheusDuration
+import net.dankito.datetime.Instant
 import net.dankito.web.client.RequestParameters
 import net.dankito.web.client.WebClient
 import net.dankito.web.client.WebClientResult
 import net.dankito.web.client.auth.Authentication
+import net.dankito.web.client.serialization.KotlinxJsonSerializer
+import net.dankito.web.client.websocket.ReconnectingWebSocket
 import net.dankito.web.client.websocket.WebSocket
 import net.dankito.web.client.websocket.WebSocketConfig
 
@@ -154,27 +158,28 @@ open class LokiClient(
      * - `start`: The start time for the query as a nanosecond Unix epoch. Defaults to one hour ago.
      */
     open suspend fun tail(query: String, delayForSeconds: Int? = null, limit: Int? = null, start: LokiTimestamp? = null, messageReceived: (WebSocketTailMessage) -> Unit): WebSocket {
-        val queryParams = queryParams(query, start, other = mapOf("limit" to limit, "delay_for" to delayForSeconds))
-        val config = WebSocketConfig("$apiEndpoint/tail".replace("http", "ws"), queryParams, authentication = authentication)
+        var lastRetrievedTime = start ?: Instant.now().minusHours(1).toLokiTimestamp() // one hour ago is /tail's default start time
 
-        return webClient.webSocket(config).apply {
-            onSuccessfullyDeserializedTextMessage(WebSocketTailMessage::class) { tailMessage ->
-                messageReceived(tailMessage)
-            }
+        val webSocket = ReconnectingWebSocket.create({ statusCode, reason -> statusCode == 1011 && reason == "reached tail max duration limit" }) {
+            val queryParams = queryParams(query, lastRetrievedTime, other = mapOf("limit" to limit, "delay_for" to delayForSeconds))
+            val config = WebSocketConfig("$apiEndpoint/tail".replace("http", "ws"), queryParams, authentication = authentication)
 
-            onError { error ->
-                log.error(error) { "Retrieved error for WebSocket to Loki" }
-            }
-
-            onClose { statusCode, reason ->
-                if (statusCode == 1011 && reason == "reached tail max duration limit") { // per default Loki closes web sockets after one hour
-                    log.info { "Loki closed WebSocket connection to /tail endpoint, reconnecting ..." }
-                    tail(query, delayForSeconds, limit, start, messageReceived)
-                } else {
-                    log.info { "WebSocket connection to Loki /tail endpoint closed" }
-                }
-            }
+            webClient.webSocket(config)
         }
+
+        webSocket.onSuccessfullyDeserializedTextMessage(WebSocketTailMessage::class, serializer = KotlinxJsonSerializer()) { tailMessage ->
+            tailMessage.streams.flatMap { it.values }.maxOfOrNull { it.timestamp }?.let {
+                lastRetrievedTime = it.plusNanoseconds(1).toLokiTimestamp()
+            }
+
+            messageReceived(tailMessage)
+        }
+
+        webSocket.onError { error ->
+            log.error(error) { "Retrieved error for WebSocket to Loki" }
+        }
+
+        return webSocket
     }
 
 
