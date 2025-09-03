@@ -18,7 +18,7 @@ allprojects {
     }
 
     group = "net.codinux.log.loki"
-    version = "0.6.1-SNAPSHOT"
+    version = "0.7.0"
 
 
     ext["projectName"] = "Loki Client"
